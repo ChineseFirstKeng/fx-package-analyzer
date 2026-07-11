@@ -1,0 +1,40 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 .car 文件",
+      "desc": "使用 xcrun assetutil --info <.car文件> 解析 Asset Catalog 编译产物，输出 JSON 数组，每个条目包含：\n- Name：资源名称\n- SHA1Digest：资源内容的 SHA1 哈希值\n- SizeOnDisk：在 .car 文件中的磁盘占用\n- Scale：@1x/@2x/@3x\n- Idiom：phone/pad/universal"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按 SHA1 分组",
+      "desc": "哈希完全相同的资源视为内容完全一致的重复资源。"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：过滤误报",
+      "desc": "同一 .car 内的同 SHA1 条目通常是同一资源的不同 rendition（不同 scale/idiom），不算真正重复。\n只保留跨 .car 文件的重复（真正的浪费）。"
+    },
+    {
+      "type": "step",
+      "title": "Step 4：计算浪费",
+      "desc": "浪费量 = 单个 SizeOnDisk × (实例数 - 1)"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "assetutil 输出：\n  - Name: icon_home, SHA1: a1b2c3..., SizeOnDisk: 50KB, Scale: 2x\n  - Name: icon_home, SHA1: a1b2c3..., SizeOnDisk: 50KB, Scale: 2x\n  （来自不同的 .car 文件）\n\n→ 重复组：2 个实例，SHA1 相同\n→ 浪费：50KB × (2-1) = 50KB"
+    },
+    {
+      "type": "items",
+      "title": "局限性",
+      "items": [
+        "只能检测 .car 文件内部的重复（Asset Catalog 编译产物）",
+        "无法检测 .app 目录下其他文件的重复（需要运行 duplicate_resource_detector.py）",
+        "同一资源的不同 scale 版本（@1x/@2x/@3x）不视为重复",
+        "依赖 assetutil 工具（需要安装 Xcode）"
+      ]
+    }
+  ]
+}

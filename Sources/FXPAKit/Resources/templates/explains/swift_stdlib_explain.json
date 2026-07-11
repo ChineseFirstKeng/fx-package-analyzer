@@ -1,0 +1,27 @@
+{
+  "title": "检测原理",
+  "steps": [
+    {
+      "type": "text",
+      "desc": "为什么关注 Swift 标准库嵌入？\nSwift 标准库动态库（libswift*.dylib）每个约 1-3MB，全套可占 5-15MB。"
+    },
+    {
+      "type": "text",
+      "desc": "iOS 12.2 起，Apple 在系统中内置了 Swift 标准库。\n如果 App 的 Deployment Target >= 12.2，理论上无需在 .app 中嵌入这些库。"
+    },
+    {
+      "type": "items",
+      "title": "什么情况下仍需嵌入",
+      "items": [
+        "Deployment Target < 12.2（旧系统没有内置 Swift）",
+        "使用了 App Extension 且 Extension 依赖 Swift（需独立嵌入）",
+        "Build Settings 中 ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES 被手动开启"
+      ]
+    },
+    {
+      "type": "step",
+      "title": "检测方法",
+      "desc": "1. 扫描 .app/Frameworks/ 目录下的 libswift*.dylib\n2. 使用 otool -L 检查主二进制是否链接 Swift\n3. 计算嵌入的 Swift 库总大小"
+    }
+  ]
+}

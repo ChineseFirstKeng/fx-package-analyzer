@@ -1,0 +1,25 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：识别 Mach-O 二进制",
+      "desc": "读取文件头 4 字节魔数识别 .app 内所有 Mach-O 二进制文件：\n- 0xFEEDFACE → 32 位 Mach-O\n- 0xFEEDFACF → 64 位 Mach-O\n- 0xCAFEBABE → Fat Binary（通用二进制）"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：提取动态库依赖",
+      "desc": "对每个二进制执行 otool -L，提取 LC_LOAD_DYLIB 加载指令中的动态库依赖路径。"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：获取文件大小",
+      "desc": "用 os.path.getsize() 获取文件大小。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": ".app 目录：\n  MyApp (Mach-O 64-bit)\n  Frameworks/AFNetworking.framework/AFNetworking (Mach-O 64-bit)\n\notool -L MyApp 输出：\n  /usr/lib/libobjc.A.dylib (系统库)\n  /System/Library/Frameworks/Foundation.framework/Foundation (系统库)\n  @rpath/AFNetworking.framework/AFNetworking (嵌入库)\n\n结果：\n  MyApp: 大小 20MB, 嵌入库依赖 1 个\n  AFNetworking: 大小 2MB, 嵌入库依赖 0 个"
+    }
+  ]
+}

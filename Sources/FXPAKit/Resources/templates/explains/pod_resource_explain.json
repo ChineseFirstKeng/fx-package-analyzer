@@ -1,0 +1,16 @@
+{
+  "title": "检测原理",
+  "steps": [
+    { "type": "step", "title": "数据来源 1：LinkMap（代码大小）",
+      "desc": "从 LinkMap 文件中提取 lib_type=static 的模块，获取每个静态库的编译后代码大小。" },
+    { "type": "step", "title": "数据来源 2：*-resources.sh（资源大小）",
+      "desc": "解析 CocoaPods 生成的 *-resources.sh 文件，获取每个 Pod 打包的资源文件及其大小。" },
+    { "type": "step", "title": "合并逻辑",
+      "desc": "将两个数据源按 Pod 名称合并：\n- 代码大小（来自 LinkMap）+ 资源大小（来自 resources.sh）= 总大小\n- 如果只有 LinkMap 数据没有 resources.sh，说明该 Pod 无额外资源\n- 如果只有 resources.sh 没有 LinkMap，说明该 Pod 未编译进主二进制" },
+    { "type": "items", "title": "局限性", "items": [
+      "use_frameworks! 模式的 Pod 不会出现在此列表中（它们是动态库）",
+      "代码大小是编译后的 .o 文件大小，不是源码大小",
+      "资源大小只包含 *-resources.sh 中列出的文件"
+    ]}
+  ]
+}

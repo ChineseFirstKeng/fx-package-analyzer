@@ -1,0 +1,30 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：获取 App Thinning Size Report",
+      "desc": "有两种方式获取：\n- 解析 .xcarchive 中的 App Thinning Size Report.txt 文件（由 Xcode exportArchive 生成）\n- 调用 xcrun app-thinning-size-tool --xml 直接获取"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：解析设备变体",
+      "desc": "每个变体对应一种设备型号/架构组合：\n- iPhone 14 (arm64)\n- iPad Pro (arm64)\n- Apple Watch (arm64_32)"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：提取大小信息",
+      "desc": "每个变体包含：\n- App：主应用大小\n- ODR：On-Demand Resources 大小\n- 下载大小：用户实际下载的大小（压缩后）\n- 安装大小：安装后占用的空间"
+    },
+    {
+      "type": "step",
+      "title": "Step 4：计算节省",
+      "desc": "节省 = 通用包大小 - 该变体的下载大小"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "App Thinning Size Report 内容：\n  Device: iPhone 14\n    App: 50MB\n    ODR: 0MB\n    Download: 48MB\n    Install: 55MB\n\n  Device: iPad Pro\n    App: 55MB\n    ODR: 0MB\n    Download: 52MB\n    Install: 60MB\n\n通用包大小: 80MB\n节省: 80MB - 48MB = 32MB (iPhone 14)"
+    }
+  ]
+}

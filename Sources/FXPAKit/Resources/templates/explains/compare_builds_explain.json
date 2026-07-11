@@ -1,0 +1,39 @@
+{
+  "title": "对比说明",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1",
+      "desc": "分别加载两次构建的分析报告（unified_report.json）"
+    },
+    {
+      "type": "step",
+      "title": "Step 2",
+      "desc": "按模块名匹配，计算每个模块的体积增量"
+    },
+    {
+      "type": "step",
+      "title": "Step 3",
+      "desc": "按段名匹配，计算 Mach-O 段分布的变化"
+    },
+    {
+      "type": "step",
+      "title": "Step 4",
+      "desc": "按资源类别匹配，计算资源体积的变化"
+    },
+    {
+      "type": "step",
+      "title": "Step 5",
+      "desc": "按 |delta| 降序排列，优先展示变化最大的模块"
+    },
+    {
+      "type": "items",
+      "title": "输入支持",
+      "items": [
+        "unified_report.json（推荐，直接对比，最快）",
+        ".xcarchive（会自动运行 package_analyzer.sh 生成报告）",
+        ".app（会自动运行分析）"
+      ]
+    }
+  ]
+}

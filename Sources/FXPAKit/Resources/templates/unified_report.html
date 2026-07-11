@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>统一报告</title>
+<style>
+/* CSS_INLINE */
+</style>
+<script>
+/* COMMON_JS_INLINE */
+</script>
+</head>
+<body class="report-page">
+<div class="sidebar">
+  <div class="logo"><span id="sidebarAppName"></span><div class="sub">包体积分析报告</div></div>
+  <div class="nav" id="sidebarNav"></div>
+</div>
+<div class="main">
+  <div id="app"></div>
+</div>
+<script>
+/* RENDER_JS_INLINE */
+</script>
+<!-- REPORT_DATA -->
+<script>
+(function() {
+  var RD = window.REPORT_DATA || {};
+
+  // ── 侧边栏导航 ──
+  document.getElementById('sidebarAppName').textContent = RD.app_name || RD.meta.app_name || '';
+
+  // tab 定义：统一概览 + sidebar_items
+  var tabs = [];
+  tabs.push({label: '统一概览', icon: '&#9670;', html_file: 'overview_report.html'});
+  if (RD.sidebar_items) {
+    for (var si = 0; si < RD.sidebar_items.length; si++) {
+      var item = RD.sidebar_items[si];
+      tabs.push({label: item.label, icon: item.icon || '', html_file: item.html_file});
+    }
+  }
+
+  // 生成侧边栏导航
+  var navHtml = '';
+  for (var ni = 0; ni < tabs.length; ni++) {
+    var activeClass = (ni === 0) ? ' active' : '';
+    navHtml += '<div class="nav-item' + activeClass + '" data-tab="' + ni + '">' + tabs[ni].icon + ' ' + esc(tabs[ni].label) + '</div>';
+  }
+  document.getElementById('sidebarNav').innerHTML = navHtml;
+
+  // 生成 iframe tabs
+  var appHtml = '';
+  for (var ti = 0; ti < tabs.length; ti++) {
+    var activeClass = (ti === 0) ? ' active' : '';
+    appHtml += '<div class="tab-content' + activeClass + '" id="tab' + ti + '">';
+    appHtml += '<iframe src="' + esc(tabs[ti].html_file) + '" class="report-frame" onload="this.style.visibility=\'visible\'"></iframe>';
+    appHtml += '</div>';
+  }
+  document.getElementById('app').innerHTML = appHtml;
+
+  // ── 侧边栏点击 ──
+  var navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      navItems.forEach(function(n) { n.classList.remove('active'); });
+      item.classList.add('active');
+      var idx = item.getAttribute('data-tab');
+      document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+      var target = document.getElementById('tab' + idx);
+      if (target) target.classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>

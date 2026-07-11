@@ -1,0 +1,25 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 Object files 段",
+      "desc": "LinkMap 的 # Object files: 段列出所有参与链接的 .o 文件及其编号：\n[  1] /DerivedData/MyApp.build/ViewController.o\n[  2] /DerivedData/Pods.build/AFNetworking.o"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：解析 Symbols 段",
+      "desc": "每个符号都带 [file_id]，关联到具体文件：\n0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：按模块聚合",
+      "desc": "按文件路径中的模式推断模块归属：\n- /Pods/AFNetworking/ → AFNetworking\n- MyApp.build/Objects-normal/ → MyApp\n- .build/checkouts/Alamofire/ → Alamofire"
+    },
+    {
+      "type": "step",
+      "title": "Step 4：模块内按 .o 文件拆分",
+      "desc": "同一模块内的不同 .o 文件单独统计，方便定位具体哪个文件占用最大。"
+    }
+  ]
+}

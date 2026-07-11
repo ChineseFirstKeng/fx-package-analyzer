@@ -1,0 +1,45 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 LinkMap 文件结构",
+      "desc": "LinkMap 是 Xcode 链接器生成的文本文件，包含三个主要段：\n- # Object files: — 参与链接的所有 .o 文件列表，格式：[  1] /path/to/ViewController.o\n- # Sections: — 段信息（__TEXT/__DATA 等）\n- # Symbols: — 符号表，格式：0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：建立 file_id 映射",
+      "desc": "解析 Object files 段，建立编号到路径的映射：\n[  1] /path/to/ViewController.o → {1: \"/path/to/ViewController.o\"}"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：解析符号并关联文件",
+      "desc": "解析 Symbols 段，每个符号包含：\n- 地址（Address）\n- 大小（Size，十六进制）\n- 文件编号（file_id）\n- 符号名（函数名/变量名）"
+    },
+    {
+      "type": "step",
+      "title": "Step 4：按模块聚合",
+      "desc": "按文件路径中的模式推断模块归属：\n- /Pods/AFNetworking/ → 模块 AFNetworking\n- MyApp.build/Objects-normal/ → 模块 MyApp\n- .build/checkouts/Alamofire/ → 模块 Alamofire"
+    },
+    {
+      "type": "step",
+      "title": "Step 5：累加体积",
+      "desc": "同一模块的所有符号 size 累加 = 该模块的代码体积"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "LinkMap 内容：\n  # Object files:\n  [  1] /DerivedData/MyApp.build/ViewController.o\n  [  2] /DerivedData/Pods.build/AFNetworking/AFNetworking.o\n\n  # Symbols:\n  0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]\n  0x100004020 0x00000040 [  2] -[AFHTTPSessionManager GET:]\n\n解析结果：\n  模块 MyApp: 32B (ViewController.o)\n  模块 AFNetworking: 64B (AFNetworking.o)"
+    },
+    {
+      "type": "items",
+      "title": "局限性",
+      "items": [
+        "LinkMap 只记录代码段（__TEXT），不包含资源文件大小",
+        "LTO（链接时优化）可能导致部分符号信息缺失",
+        "动态库（.framework dynamic）的代码不计入主二进制的 LinkMap",
+        "不同编译配置（Debug/Release）生成的 LinkMap 大小不同"
+      ]
+    }
+  ]
+}

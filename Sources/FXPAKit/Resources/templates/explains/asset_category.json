@@ -1,0 +1,30 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：扫描源码工程资源文件",
+      "desc": "遍历工程目录，识别两类资源：\n1. .xcassets 内的 imageset / colorset / dataset — 以目录名为资源名，聚合内部所有原始文件\n2. Resources / Fonts / Sounds 等目录下的松散资源文件"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按扩展名分类",
+      "desc": "将文件按扩展名映射到语义类别：.png/.jpg → images / .ttf/.otf → fonts / .json/.plist → data / .storyboard/.nib → nib_storyboard 等"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：累加体积",
+      "desc": "每类体积 = 该类所有原始文件的体积之和。注意：此处显示的是源码工程中的原始文件大小，不包含 Asset Catalog 编译压缩（.car）后的体积变化。"
+    },
+    {
+      "type": "items",
+      "title": "⚠️ 关于 .car 图片的体积",
+      "items": [
+        "环形图和文件类型明细中展示的是源码工程中 .xcassets 目录下的原始图片体积",
+        "Xcode 编译时会将这些图片重新编码、压缩、打包到 Assets.car 中，实际打包体积可能与原始大小有显著差异",
+        "例如一张 500KB 的原始 PNG，经 .car 压缩后可能只剩 100KB，但也可能被放大（取决于压缩算法和图片内容）",
+        "如需获取准确的 .car 内图片体积，请查看「Car拆解」Tab（使用 assetutil 解析实际 .car 文件）"
+      ]
+    }
+  ]
+}

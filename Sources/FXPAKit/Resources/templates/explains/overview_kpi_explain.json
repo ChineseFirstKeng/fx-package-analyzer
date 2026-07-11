@@ -1,0 +1,25 @@
+{
+  "title": "数据来源说明",
+  "steps": [
+    {
+      "type": "step",
+      "title": "总大小",
+      "desc": "通过扫描 .app 目录，累加所有文件的实际磁盘占用大小。这是用户下载 App 时的实际体积。"
+    },
+    {
+      "type": "step",
+      "title": "所有可执行文件",
+      "desc": "主二进制文件 + .app/Frameworks/ 下所有 framework 二进制文件的大小之和。这是 App 的代码载体，包含编译后的机器码、元数据、签名等。"
+    },
+    {
+      "type": "step",
+      "title": "资源",
+      "desc": ".app 中除可执行文件以外的所有文件，包括图片、配置、本地化、Assets.car、字体、音视频等。注意：framework 内部的资源已包含在「所有可执行文件」的 framework 大小中。"
+    },
+    {
+      "type": "step",
+      "title": "其他",
+      "desc": "总大小减去可执行文件和资源后的差值。这是一个数据完整性校验值，理论上应为 0。如果大于 0，说明 app_structure.json 中根节点 size 与子节点 size 之和不一致，不影响分析结论，可忽略。"
+    }
+  ]
+}

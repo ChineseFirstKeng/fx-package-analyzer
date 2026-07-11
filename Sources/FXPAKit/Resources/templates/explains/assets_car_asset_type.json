@@ -1,0 +1,20 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 .car 文件",
+      "desc": "使用 xcrun assetutil --info <.car文件> 解析 Asset Catalog 编译产物，输出 JSON 数组，每个条目包含：\n- AssetType：资源类型（Image/PDF/Color/Data/Texture 等）\n- Name：资源名称\n- SizeOnDisk：在 .car 文件中的磁盘占用（字节）\n- Scale：@1x/@2x/@3x\n- Idiom：phone/pad/universal"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按 AssetType 分组",
+      "desc": "将所有资源按 AssetType 分组，累加 SizeOnDisk 得到各类别的体积。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "assetutil 输出：\n  - {AssetType: \"Image\", Name: \"icon_home\", SizeOnDisk: 50KB}\n  - {AssetType: \"Image\", Name: \"icon_back\", SizeOnDisk: 30KB}\n  - {AssetType: \"Color\", Name: \"primary\", SizeOnDisk: 1KB}\n\n分组结果：\n  Image: 80KB (2个)\n  Color: 1KB (1个)"
+    }
+  ]
+}

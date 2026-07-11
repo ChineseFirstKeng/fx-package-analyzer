@@ -1,0 +1,13 @@
+{
+  "title": "实现原理",
+  "steps": [
+    { "type": "step", "title": "Step 1：获取编译设置",
+      "desc": "执行 xcodebuild -showBuildSettings 获取当前 Scheme 的全部编译设置。" },
+    { "type": "step", "title": "Step 2：匹配预定义配置 Key",
+      "desc": "逐行匹配 21 个预定义的配置 Key：\n- SWIFT_OPTIMIZATION_LEVEL：Swift 优化级别\n- DEAD_CODE_STRIPPING：死代码剥离\n- STRIP_SWIFT_SYMBOLS：剥离 Swift 符号\n- ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES：避免嵌入 Swift 标准库\n- GCC_OPTIMIZATION_LEVEL：GCC 优化级别\n- LLVM_LTO：链接时优化\n- ...等" },
+    { "type": "step", "title": "Step 3：提取当前值并与推荐值对比",
+      "desc": "判定逻辑：\n- 当前值 = 推荐值 → 合规 ✅\n- 当前值为空 → 未设置 ⚠️\n- 其他 → 不合规 ❌" },
+    { "type": "step", "title": "Step 4：值等价处理",
+      "desc": "YES/1 等价，NO/0 等价。" }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 Sections 段",
+      "desc": "LinkMap 的 # Sections: 段包含所有段信息，每行格式：\n0x100004000 0x1234 __TEXT __text\n- Address：段的内存地址\n- Size：段的大小（十六进制）\n- Segment：段类型（__TEXT/__DATA/__LINKEDIT 等）\n- Section：段名称（__text/__const/__objc_methname 等）"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：分组累加",
+      "desc": "按 Segment+Section 分组，累加 Size 字段，得到各段的体积分布。"
+    },
+    {
+      "type": "items",
+      "title": "各段含义",
+      "items": [
+        "__TEXT,__text：编译后的机器码（函数/方法）",
+        "__TEXT,__const：常量数据",
+        "__TEXT,__cstring：C 字符串常量",
+        "__TEXT,__objc_methname：ObjC 方法名",
+        "__DATA,__objc_classlist：ObjC 类列表",
+        "__DATA,__bss：未初始化的全局变量",
+        "__LINKEDIT：链接器元数据（符号表、重定位信息等）"
+      ]
+    }
+  ]
+}

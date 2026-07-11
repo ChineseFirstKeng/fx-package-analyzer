@@ -1,0 +1,25 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：建立 file_id 到 .o 文件的映射",
+      "desc": "解析 # Object files: 段：\n[  1] /path/to/ViewController.o → {1: \"ViewController.o\"}"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：累加同一 file_id 的所有符号",
+      "desc": "遍历 # Symbols: 段，每个符号的 [file_id] 关联到 .o 文件：\n[  1] -[ViewController viewDidLoad] → ViewController.o\n[  1] -[ViewController viewWillAppear:] → ViewController.o"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：计算每个 .o 文件的体积",
+      "desc": "同一 file_id 的所有符号 size 累加 = 该 .o 文件的体积。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "LinkMap 内容：\n  [  1] ViewController.o\n  [  2] NetworkManager.o\n\n  Symbols:\n  0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]  (32B)\n  0x100004020 0x00000040 [  1] -[ViewController viewWillAppear:]  (64B)\n  0x100004060 0x00000010 [  2] -[NetworkManager fetch]  (16B)\n\n结果：\n  ViewController.o: 32 + 64 = 96B\n  NetworkManager.o: 16B"
+    }
+  ]
+}

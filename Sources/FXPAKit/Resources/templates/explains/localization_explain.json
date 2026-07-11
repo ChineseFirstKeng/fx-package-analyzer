@@ -1,0 +1,14 @@
+{
+  "title": "审计说明",
+  "steps": [
+    { "type": "step", "title": "本地化对包体积的影响",
+      "desc": "每种语言都会增加 .strings、.stringsdict、以及可能的图片/NIB 等资源。语言越多，本地化资源体积越大。每增加一种语言，通常增加 100KB-2MB。" },
+    { "type": "step", "title": "检测方法",
+      "desc": "1. 扫描 .app 中所有 .lproj 目录\n2. 统计每种语言的文件数、大小、类型分布\n3. 扫描源码中的 NSLocalizedString 引用，与 .strings key 做交叉检测" },
+    { "type": "items", "title": "优化方向", "items": [
+      "移除用户量极低的语言支持",
+      "清理未使用的本地化 key",
+      "使用 Base internationalization 减少重复资源"
+    ]}
+  ]
+}

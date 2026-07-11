@@ -1,0 +1,8 @@
+{
+  "steps": [
+    {
+      "type": "text",
+      "desc": "数据来源：从全部文件中筛选扩展名属于图片类型（png/jpg/gif/webp/heic/svg/pdf 等）的文件。超过阈值（默认 100KB）的行高亮提示。"
+    }
+  ]
+}

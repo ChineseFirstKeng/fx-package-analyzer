@@ -1,0 +1,11 @@
+{
+  "title": "检测原理（增强版 v2.0）",
+  "steps": [
+    { "type": "step", "title": "1. Receiver 类型追踪",
+      "desc": "通过 libclang 解析 [obj method] 的 receiver 类型，区分 [MyVC setupUI] 和 [OtherVC setupUI]，同名 selector 不再跨类塌缩。" },
+    { "type": "step", "title": "2. 静态引用扫描",
+      "desc": "扫描 xib/storyboard（customClass、selector）、plist（类名字符串），补充 AST 不可见的引用来源。" },
+    { "type": "step", "title": "3. +load/+initialize 豁免",
+      "desc": "runtime 自动调用的方法自动标记为已使用。" }
+  ]
+}

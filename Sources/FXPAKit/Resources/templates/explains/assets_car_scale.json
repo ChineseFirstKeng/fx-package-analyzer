@@ -1,0 +1,29 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 .car 文件",
+      "desc": "使用 xcrun assetutil --info <.car文件> 解析 Asset Catalog 编译产物，每个图片/PDF 资源包含：\n- Name：资源名称\n- Scale：1x/2x/3x\n- Idiom：phone/pad/universal"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按 Name+Idiom 分组",
+      "desc": "同一资源在不同 scale 下应该有多个版本：\n- icon_home @1x (30KB)\n- icon_home @2x (50KB)\n- icon_home @3x (80KB)"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：检查 Scale 完整性",
+      "desc": "检查是否同时具备 @1x/@2x/@3x，缺失的 scale 会被标记。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "assetutil 输出：\n  - {Name: \"icon_home\", Scale: 2x, Idiom: universal, SizeOnDisk: 50KB}\n  - {Name: \"icon_home\", Scale: 3x, Idiom: universal, SizeOnDisk: 80KB}\n\n分组结果：\n  icon_home (universal):\n    已有: @2x, @3x\n    缺失: @1x\n    总大小: 130KB"
+    },
+    {
+      "type": "text",
+      "desc": "注意：某些资源只有 @2x 是设计意图（如矢量图），并非真的缺失。此分析仅供参考。"
+    }
+  ]
+}

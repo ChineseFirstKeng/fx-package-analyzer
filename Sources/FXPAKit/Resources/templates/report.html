@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>包体积报告</title>
+<style>
+/* CSS_INLINE */
+</style>
+</head>
+<body>
+<div id="app"></div>
+<!-- REPORT_DATA -->
+<script>
+/* RENDER_JS_INLINE */
+</script>
+<script>
+/* COMMON_JS_INLINE */
+</script>
+<script>
+// Generic report renderer — consumes adapter context
+(function() {
+  var d = window.REPORT_DATA || {};
+  var app = document.getElementById('app');
+  var html = '';
+
+  // ── Header ──
+  html += '<div class="header">';
+  html += '<h1>' + esc(d.title || '') + '</h1>';
+  if (d.meta) html += '<div class="meta">' + d.meta + '</div>';
+  html += '</div>';
+
+  // ── KPI cards ──
+  if (d.kpis && d.kpis.length) {
+    html += '<div class="kpis">';
+    d.kpis.forEach(function(k) {
+      html += kpiCard(k.label, k.value, { sub: k.sub, color: k.color, valueDisplay: k.value_display });
+    });
+    html += '</div>';
+  }
+
+  // ── grid2_sections (two-column layout, used by asset & linkmap) ──
+  if (d.grid2_sections && d.grid2_sections.length) {
+    html += '<div class="grid2">';
+    d.grid2_sections.forEach(function(s) {
+      html += renderSection(s);
+    });
+    html += '</div>';
+  }
+
+  // ── sections ──
+  if (d.sections && d.sections.length) {
+    d.sections.forEach(function(s) {
+      html += renderSection(s);
+    });
+  }
+
+  // ── extra_js ──
+  if (d.extra_js) html += d.extra_js;
+
+  // ── Footer ──
+  html += '<div class="page-footer">' + esc(d.title || '') + ' · ' + esc(d.generated_at || '') + '</div>';
+
+  app.innerHTML = html;
+
+  // ── Section renderer ──
+  function renderSection(s) {
+    var body = '';
+
+    // Banner
+    if (s.banner) {
+      body += banner(s.banner.type, s.banner.text);
+    }
+
+    // Donut chart
+    if (s.donut) {
+      body += donutChart(s.donut.center_label || '', s.donut.items || []);
+    }
+
+    // Filter bar + table
+    if (s.table) {
+      var tblId = s.table.id || ('tbl_' + Math.random().toString(36).slice(2,6));
+      if (s.filter) {
+        body += filterBar(tblId, s.filter);
+      }
+      // Normalize row format: Python uses sort_key, JS expects sortKey
+      var rows = (s.table.rows || []).map(function(r) {
+        return {
+          sortKey: r.sort_key || r.sortKey || 0,
+          class_name: r.class_name,
+          attrs: r.attrs,
+          cells: r.cells || [],
+          expand: r.expand || ''
+        };
+      });
+      body += sortableTable(tblId, s.table.columns || [], rows);
+    }
+
+    // Tree (rendered by JS renderTree)
+    if (s.tree) {
+      var treeCols = s.tree.columns || [
+        {key:'name', label:'名称', colWidth:'auto', cls:'lbl'},
+        {key:'type', label:'文件类型', colWidth:'100px', cls:'num'},
+        {key:'size', label:'大小', colWidth:'100px', cls:'sz'},
+        {key:'pct',  label:'占比', colWidth:'85px', cls:'num'}
+      ];
+      var treeTypeLabels = s.tree.type_labels || TREE_TYPE_LABELS;
+      body += renderHeader(treeCols) + _treeRow(s.tree.root, s.tree.total_size, 0, {
+        columns: treeCols, icons: TREE_ICONS, labels: treeTypeLabels, collapsible: true, start_collapsed: s.tree.start_collapsed
+      }) + '</tbody></table>';
+    }
+
+    // 树列表（多棵树共享表头）
+    if (s.tree_list) {
+      var tl = s.tree_list;
+      var treeId = 'tree_' + Math.random().toString(36).slice(2,6);
+      if (tl.filter) {
+        body += filterBar(treeId, tl.filter);
+      }
+      var treeListTypeLabels = tl.type_labels || TREE_TYPE_LABELS;
+      var opts = { columns: tl.columns, icons: TREE_ICONS, labels: treeListTypeLabels, collapsible: true, start_collapsed: tl.start_collapsed };
+      var total = tl.trees.reduce(function(s,t){return s+(t.size||0)},0) || 1;
+      body += '<table class="data-table" id="' + treeId + '"><colgroup>';
+      tl.columns.forEach(function(c) {
+        var w = c.colWidth || 'auto';
+        body += w === 'auto' ? '<col>' : '<col style="width:' + w + '">';
+      });
+      body += '</colgroup><thead><tr>';
+      tl.columns.forEach(function(c) { body += '<th>' + esc(c.label) + '</th>'; });
+      body += '</tr></thead><tbody>';
+      tl.trees.forEach(function(t) { body += _treeRow(t, total, 0, opts); });
+      body += '</tbody></table>';
+    }
+
+    // Raw HTML content
+    if (s.content_html) {
+      body += s.content_html;
+    }
+
+    return section(s.title || '', body, { hint: s.hint || '', explain: s.explain || '', explain_expand: s.explain_expand || false });
+  }
+})();
+</script>
+</body>
+</html>

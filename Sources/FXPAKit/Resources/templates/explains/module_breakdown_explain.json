@@ -1,0 +1,25 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "1. 代码大小",
+      "desc": "来自 LinkMap 文件，按 .o 文件的符号大小求和，按模块聚合。"
+    },
+    {
+      "type": "step",
+      "title": "2. 资源大小",
+      "desc": "来自 Pods/Target Support Files 下的 *-resources.sh 脚本，提取 install_resource 指令中声明的文件，按 src_root 反查归属的 Pod。"
+    },
+    {
+      "type": "step",
+      "title": "3. 静态库",
+      "desc": "LinkMap 中有 .o 文件且不属于工具链/系统路径的模块。以 .a 形式链接进主二进制。"
+    },
+    {
+      "type": "step",
+      "title": "4. 动态库",
+      "desc": "Pod 独立 LinkMap 中已出现的模块优先使用其 LinkMap 数据；仅在 Pod LinkMap 中不存在的模块才取 .app/Frameworks 下的文件大小。两者按模块名去重。"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：扫描文件",
+      "desc": "用 os.walk 递归遍历 .app 目录，筛选满足以下条件的文件：扩展名在资源类型列表中（.png/.jpg/.json/.plist/.ttf 等），文件大小 ≥ 1KB（跳过太小的文件），排除 .car/.dylib/.framework 等特殊文件。"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：计算哈希",
+      "desc": "对每个文件计算 SHA256 哈希值（64KB 分块读取，避免内存溢出）。icon_home.png → a1b2c3d4e5f6...。Assets/icon_home.png → a1b2c3d4e5f6...（相同内容，哈希相同）。"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：分组检测重复",
+      "desc": "哈希完全相同的文件归为一组，即内容完全一致的重复资源。"
+    },
+    {
+      "type": "step",
+      "title": "Step 4：计算浪费",
+      "desc": "浪费体积 = 单文件大小 × (实例数 - 1)。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "扫描到 3 个文件，哈希都是 a1b2c3d4...：\n  - Frameworks/A.framework/icon_home.png (50KB)\n  - Frameworks/B.framework/icon_home.png (50KB)\n  - Resources/icon_home.png (50KB)\n\n→ 重复组：3 个实例\n→ 浪费：50KB × (3-1) = 100KB"
+    },
+    {
+      "type": "items",
+      "title": "局限性",
+      "items": [
+        "只能检测内容完全相同的文件（哈希相同）",
+        "无法检测相似但不同的图片（如同一张图的不同压缩版本）",
+        "跳过了 .car 文件（需要专门的 assetutil 工具分析）",
+        "跳过了小于 1KB 的文件（避免误报）"
+      ]
+    }
+  ]
+}

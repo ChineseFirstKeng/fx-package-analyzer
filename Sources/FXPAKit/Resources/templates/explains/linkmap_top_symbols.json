@@ -1,0 +1,24 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 Symbols 段",
+      "desc": "直接读取 LinkMap 的 # Symbols: 段，每行格式：\n0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]\n- Address：符号的内存地址\n- Size：符号占用的字节数（十六进制）\n- file_id：所属的 .o 文件编号\n- SymbolName：符号名（函数名/方法名/变量名）"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按 Size 降序排列",
+      "desc": "取体积最大的 Top N 个符号展示。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "符号名                                          大小      来源文件\n-[ViewController viewDidLoad]                    2.5KB    ViewController.o\n-[NetworkManager setupSession]                  1.8KB    NetworkManager.o\n+[AFHTTPSessionManager manager]                 1.2KB    AFNetworking.o"
+    },
+    {
+      "type": "text",
+      "desc": "【用途】帮助定位哪些函数/方法占用了最多代码空间，针对性优化。"
+    }
+  ]
+}

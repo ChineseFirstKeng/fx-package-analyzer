@@ -1,0 +1,34 @@
+{
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1",
+      "desc": "使用 Periphery 对项目进行全量 SourceKit 分析，识别未被引用的声明"
+    },
+    {
+      "type": "step",
+      "title": "Step 2",
+      "desc": "解析 LinkMap 文件，建立符号名 → 编译产物大小的映射"
+    },
+    {
+      "type": "step",
+      "title": "Step 3",
+      "desc": "将 Periphery 报告的未使用声明与 LinkMap 符号进行匹配，估算每个未使用项的体积贡献"
+    },
+    {
+      "type": "step",
+      "title": "Step 4",
+      "desc": "按模块分组，帮助定位哪些 Pod / Framework 有最多未使用代码"
+    },
+    {
+      "type": "items",
+      "title": "注意事项",
+      "items": [
+        "被 NSClassFromString / objc_getClass 等反射调用的类可能被误报",
+        "被 @objc 标注且通过字符串引用的方法可能被误报",
+        "Storyboard/XIB 中引用的类不会被代码扫描发现",
+        "预估大小为 0 表示未匹配到 LinkMap 符号（可能因 LTO 或动态库导致）"
+      ]
+    }
+  ]
+}

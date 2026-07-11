@@ -1,0 +1,98 @@
+{
+  "_description": ".package-check.json 默认配置。package_analyzer.sh init 直接拷贝此文件。",
+
+  "build": {
+    "configuration": "Release",
+    "scheme": null,
+    "team_id": null
+  },
+
+  "overview": {
+    "app_structure": true,
+    "macho_sections": true
+  },
+
+  "code": {
+    "linkmap": {
+      "enabled": true,
+      "top_symbols": 200,
+      "min_symbol_size": 1024,
+      "module_section_top": 50
+    },
+    "macho_dependency": {
+      "enabled": true
+    },
+    "dead_code": {
+      "enabled": true,
+      "top_symbols": 300
+    },
+    "objc_unused": {
+      "enabled": false,
+      "workers": 8,
+      "filter": "sdk",
+      "skip_directories": [".git","DerivedData","build",".build","node_modules","__pycache__","Target Support Files","Pods",".svn",".hg"],
+      "base_types": ["id","Class","SEL","BOOL","void","int","float","double","char","long","short","unsigned","NSInteger","NSUInteger","CGFloat","CGPoint","CGSize","CGRect","NSRange","NSString","NSArray","NSDictionary","NSSet","NSNumber","NSObject","NSCoder","NSData","NSDate","NSError","NSException","NSURL","NSIndexPath","NSValue","UIEdgeInsets","CATransform3D","CGColor","CGImage"],
+      "extra_framework_callbacks": []
+    },
+    "swift_stdlib": {
+      "enabled": true,
+      "size_warning_mb": 5
+    }
+  },
+
+  "resource": {
+    "resource_types": [
+      {"type": "images",          "resource_suffix": [".png",".jpg",".jpeg",".gif",".webp",".bmp",".tiff",".tif",".ico",".heic",".heif",".svg",".pdf"]},
+      {"type": "fonts",           "resource_suffix": [".ttf",".otf",".ttc",".woff",".woff2"]},
+      {"type": "nib_storyboard",  "resource_suffix": [".xib",".nib",".storyboard",".storyboardc"]},
+      {"type": "audio",           "resource_suffix": [".mp3",".wav",".m4a",".aac",".caf"]},
+      {"type": "video",           "resource_suffix": [".mp4",".mov",".m4v"]},
+      {"type": "data",            "resource_suffix": [".bin",".json",".xml"],
+        "_removed": "已移除 .plist .mobileprovision .entitlements .xcprivacy（编译配置/签名文件，非可控资源）"},
+      {"type": "strings",         "resource_suffix": [".strings",".stringsdict"]},
+      {"type": "scripts",         "resource_suffix": [".js",".css",".html"]},
+      {"type": "mlmodel",          "resource_suffix": [".mlmodel",".mlmodelc"]},
+      {"type": "coredata",        "resource_suffix": [".mom",".momd",".omo"]},
+      {"type": "metal_shader",    "resource_suffix": [".metal",".metallib"]}
+    ],
+    "assets": {
+      "enabled": true
+    },
+    "pod_resources": {
+      "enabled": true
+    },
+    "assets_car": {
+      "enabled": false,
+      "top_assets": 100
+    },
+    "duplicates": {
+      "enabled": true,
+      "min_file_size": 1024
+    },
+    "unused_resources": {
+      "enabled": true,
+      "min_name_length": 2,
+      "skip_extensions": [".car",".dylib",".framework",".app",".dSYM",".bundle"]
+    },
+    "app_thinning": {
+      "enabled": false
+    },
+    "localization": {
+      "enabled": true,
+      "scan_extensions": [".swift",".m",".mm",".h",".storyboard",".xib",".strings"],
+      "scan_source_dirs": [],
+      "skip_directories": [".git","DerivedData","build"],
+      "large_lang_threshold_mb": 2,
+      "many_langs_warning": 10
+    }
+  },
+
+  "build_config": {
+    "enabled": true
+  },
+
+  "render": {
+    "sidebar_order": ["pod_modules","asset","build_config","swift_stdlib","dead_code","objc_unused","app_thinning","localization","assets_car"],
+    "top_symbol_count": 300
+  }
+}

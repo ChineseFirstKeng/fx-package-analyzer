@@ -1,0 +1,30 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：提取源码工程中的资源文件",
+      "desc": "遍历工程目录提取所有原始资源文件：\n1. .xcassets 内的 imageset / colorset / dataset — 以目录名为资源名\n2. Resources / Fonts / Sounds 等目录下的松散资源文件"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：两种方式扫描源码引用",
+      "desc": "方式1 — 正则匹配（识别具体 API 调用）：\n用 20+ 种正则模式匹配：UIImage(named:)、Image()、NSLocalizedString、Bundle path 等\n\n方式2 — 字符串匹配（直接搜索资源名）：\n在源码文件中直接搜索资源名字符串，兼容性更广"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：合并结果 + 置信度分级",
+      "desc": "两种方式取并集，都未匹配到的归为未使用。按特征分级：\n- 高置信度：静态资源，可直接删除\n- 中置信度：名称含数字编号（可能动态拼接）、位于 bundle 内\n- 低置信度：字体文件（通过 PostScript 名称引用，非文件名）"
+    },
+    {
+      "type": "items",
+      "title": "⚠️ 注意事项",
+      "items": [
+        "此处显示的是源码工程中原始文件的体积，非 .car 编译压缩后的体积",
+        ".xcassets 内资源的体积不影响实际包体积（被打包进 .car 后重新编码）",
+        "动态拼接的资源名（如 \"icon_\\\\(type)\"）无法静态检测",
+        "运行时动态加载的资源（如服务端下发）无法检测"
+      ]
+    }
+  ]
+}

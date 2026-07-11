@@ -1,0 +1,24 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：遍历 .app 目录",
+      "desc": "遍历 .app 目录下所有文件（跳过 .DS_Store 等）。"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：记录文件信息",
+      "desc": "记录每个文件的路径、大小、扩展名。"
+    },
+    {
+      "type": "step",
+      "title": "Step 3：计算体积",
+      "desc": "体积 = os.path.getsize() 直接读取文件系统字节数。"
+    },
+    {
+      "type": "text",
+      "desc": "【用途】\n可以按来源、类别、扩展名筛选和排序，方便定位具体哪些文件占用空间最大。"
+    }
+  ]
+}

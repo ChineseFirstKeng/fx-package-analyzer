@@ -1,0 +1,18 @@
+/* ===== 全局 CSS 变量 ===== */
+:root {
+  --bg:       #f0f2f5;
+  --card:     #fff;
+  --text:     #1e293b;
+  --text2:    #64748b;
+  --border:   #e2e8f0;
+  --accent:   #3b82f6;
+  --gap-sm:   10px;
+  --gap-md:   16px;
+  --gap-lg:   24px;
+  --radius:   12px;
+  --fs-xs:    10px;
+  --fs-sm:    12px;
+  --fs-md:    14px;
+  --fs-lg:    18px;
+  --fs-xl:    24px;
+}

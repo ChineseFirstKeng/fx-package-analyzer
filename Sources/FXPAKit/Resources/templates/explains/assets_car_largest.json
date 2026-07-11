@@ -1,0 +1,24 @@
+{
+  "title": "实现原理",
+  "steps": [
+    {
+      "type": "step",
+      "title": "Step 1：解析 .car 文件",
+      "desc": "使用 xcrun assetutil --info <.car文件> 解析 Asset Catalog 编译产物。"
+    },
+    {
+      "type": "step",
+      "title": "Step 2：按 SizeOnDisk 降序排列",
+      "desc": "SizeOnDisk 字段即该资源在 .car 文件中的磁盘占用字节数，按降序取 Top N。"
+    },
+    {
+      "type": "code",
+      "title": "示例",
+      "code": "assetutil 输出：\n  - {Name: \"launch_bg\", SizeOnDisk: 500KB, Scale: 2x, Width: 1125, Height: 2436}\n  - {Name: \"icon_home\", SizeOnDisk: 50KB, Scale: 2x, Width: 60, Height: 60}\n\n按 SizeOnDisk 降序：\n  1. launch_bg: 500KB\n  2. icon_home: 50KB"
+    },
+    {
+      "type": "text",
+      "desc": "帮助定位哪些资源占用了最多空间，针对性优化（压缩图片、转为按需下发等）。"
+    }
+  ]
+}
