@@ -1,0 +1,15 @@
+# SwiftPM
+.build/
+Packages/
+*.xcodeproj
+*.xcworkspace
+
+# 输出目录
+package_analysis_*/
+
+# macOS
+.DS_Store
+*.swp
+
+# 本地配置（用户自己生成）
+.package-check.json
