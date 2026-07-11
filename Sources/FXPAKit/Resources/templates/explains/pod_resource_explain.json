@@ -1,16 +1,16 @@
 {
   "title": "检测原理",
   "steps": [
-    { "type": "step", "title": "数据来源 1：LinkMap（代码大小）",
-      "desc": "从 LinkMap 文件中提取 lib_type=static 的模块，获取每个静态库的编译后代码大小。" },
-    { "type": "step", "title": "数据来源 2：*-resources.sh（资源大小）",
-      "desc": "解析 CocoaPods 生成的 *-resources.sh 文件，获取每个 Pod 打包的资源文件及其大小。" },
-    { "type": "step", "title": "合并逻辑",
-      "desc": "将两个数据源按 Pod 名称合并：\n- 代码大小（来自 LinkMap）+ 资源大小（来自 resources.sh）= 总大小\n- 如果只有 LinkMap 数据没有 resources.sh，说明该 Pod 无额外资源\n- 如果只有 resources.sh 没有 LinkMap，说明该 Pod 未编译进主二进制" },
+    { "type": "step", "title": "数据来源：*-resources.sh（资源大小）",
+      "desc": "解析 CocoaPods 在 Pods/Target Support Files/ 下生成的 *-resources.sh 脚本文件，提取 install_resource 指令中声明的文件路径。对每个文件通过 FileManager.attributesOfItem 获取磁盘大小，按扩展名归类（36 种扩展名映射到 images/fonts/nib_storyboard/audio/video/data/strings/scripts 等 16 个类别），按 Pod 名称和 Target 聚合。" },
+    { "type": "step", "title": "Pod 名称推断",
+      "desc": "优先使用 *-resources.sh 对应的 Target 名（去掉 \"Pods-\" 前缀），或通过 pod_mapping.json 中的 src_roots 反查资源文件所属 Pod。失败时回退到从安装路径中提取 Pod 名。" },
+    { "type": "step", "title": "模块拆解中的合并逻辑（在统一报告层完成）",
+      "desc": "在生成统一报告和模块拆解报告时，会将 Pod 资源数据与 LinkMap 代码数据按 Pod 名称合并：代码大小（来自 LinkMap）+ 资源大小（来自 resources.sh）= 模块总大小。如果只有 LinkMap 数据没有 resources.sh，说明该 Pod 无额外资源；如果只有 resources.sh 没有 LinkMap，说明该 Pod 可能是动态库或以 use_frameworks! 方式集成。" },
     { "type": "items", "title": "局限性", "items": [
-      "use_frameworks! 模式的 Pod 不会出现在此列表中（它们是动态库）",
-      "代码大小是编译后的 .o 文件大小，不是源码大小",
-      "资源大小只包含 *-resources.sh 中列出的文件"
+      "use_frameworks! 模式的 Pod 的资源不会出现在 *-resources.sh 中（资源直接打包进 .framework）",
+      "资源大小是文件系统中的原始大小，非编译压缩后体积",
+      "资源大小只包含 *-resources.sh 中 install_resource 列出的文件"
     ]}
   ]
 }

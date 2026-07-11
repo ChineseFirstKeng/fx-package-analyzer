@@ -3,18 +3,18 @@
   "steps": [
     {
       "type": "step",
-      "title": "Step 1：遍历 .app 目录",
-      "desc": "遍历 .app 目录下所有文件（跳过 .DS_Store 等）。"
+      "title": "Step 1：遍历源码工程目录",
+      "desc": "通过 FileManager.enumerator 递归遍历源码工程目录，跳过配置的忽略目录（.git / DerivedData / build / Carthage / node_modules / .swiftpm / __pycache__ 等 12 个目录），只收集扩展名在 allowedExtensions 白名单内的文件。同时解析 Podfile 发现本地 Pod 目录一并扫描。"
     },
     {
       "type": "step",
       "title": "Step 2：记录文件信息",
-      "desc": "记录每个文件的路径、大小、扩展名。"
+      "desc": "记录每个文件的路径、相对路径、大小（FileManager.attributesOfItem[.size]）、扩展名、归属来源（主工程或 Pod 名）、SHA256 哈希值。"
     },
     {
       "type": "step",
-      "title": "Step 3：计算体积",
-      "desc": "体积 = os.path.getsize() 直接读取文件系统字节数。"
+      "title": "Step 3：按来源归类",
+      "desc": "通过路径猜测来源模块（Pods/<名称>/ → 该 Pod；工程根目录下顶层目录名 → 对应模块；其余 → 主工程）。"
     },
     {
       "type": "text",

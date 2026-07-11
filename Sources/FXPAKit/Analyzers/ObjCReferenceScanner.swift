@@ -4,11 +4,15 @@ import Foundation
 final class ObjCReferenceScanner {
     struct Detail { let file: String; let line: Int; let type: String; let value: String }
     let scanDir: String
+    let skipDirs: Set<String>
     var foundClasses = Set<String>()
     var foundSelectors = Set<String>()
     var detail: [Detail] = []
 
-    init(scanDir: String) { self.scanDir = scanDir }
+    init(scanDir: String, skipDirs: Set<String>) {
+        self.scanDir = scanDir
+        self.skipDirs = skipDirs
+    }
 
     func scan() {
         scanIBFiles()
@@ -20,7 +24,7 @@ final class ObjCReferenceScanner {
         guard let en = FileManager.default.enumerator(atPath: scanDir) else { return }
         for case let rel as String in en {
             let comps = rel.components(separatedBy: "/")
-            if comps.contains(where: { ObjCUnusedAnalyzer.skipDirs.contains($0) }) { continue }
+            if comps.contains(where: { self.skipDirs.contains($0) }) { continue }
             visit((scanDir as NSString).appendingPathComponent(rel))
         }
     }

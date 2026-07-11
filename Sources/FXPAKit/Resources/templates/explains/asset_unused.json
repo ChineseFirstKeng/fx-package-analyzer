@@ -4,24 +4,24 @@
     {
       "type": "step",
       "title": "Step 1：提取源码工程中的资源文件",
-      "desc": "遍历工程目录提取所有原始资源文件：.xcassets 内的 imageset/colorset 以目录名为资源名；松散资源文件按原名。"
+      "desc": "遍历工程目录（含 Podfile 中声明的本地 Pod 目录）提取所有原始资源文件：.xcassets 内的 imageset/colorset/dataset/appiconset/launchimage 以目录名为资源名；符合 allowedExtensions 白名单的松散资源文件按原名。"
     },
     {
       "type": "step",
       "title": "Step 2：正则 + 字符串双模式扫描源码引用",
-      "desc": "正则匹配识别 UIImage(named:)、Image()、NSLocalizedString 等 API 调用；字符串匹配直接搜索资源名，覆盖正则遗漏的引用方式。两种方式取并集。"
+      "desc": "扫描 .m/.mm/.swift/.h/.c/.cpp/.storyboard/.xib/.json/.plist/.pch/.metal 共 12 种源码文件（跳过 DerivedData/build/Carthage 等构建目录）。正则匹配（25 种模式）识别 UIImage(named:)、Image()、NSLocalizedString 等 API 调用；字符串匹配直接搜索资源名，覆盖正则遗漏的引用方式。两种方式取并集。App Icon 和 Launch Image 自动标记为已引用。"
     },
     {
       "type": "step",
       "title": "Step 3：置信度分级",
-      "desc": "高置信度：常规资源，可直接删除。中置信度：名称含数字编号（可能动态拼接）。低置信度：字体（通过 PostScript 名称引用，非文件名匹配）。"
+      "desc": "高置信度：默认，常规资源可直接删除。中置信度：名称含下划线+数字编号（可能动态拼接）、路径含 .bundle/ 或 Frameworks/、扩展名为 .strings（可能通过 NSLocalizedString 间接引用）。低置信度：字体文件 .ttf/.otf/.woff/.woff2（通过 PostScript 名称引用，非文件名匹配）。"
     },
     {
       "type": "items",
       "title": "⚠️ 注意事项",
       "items": [
         "体积为源码工程中原始文件大小，非 .car 编译压缩后体积",
-        "动态拼接的资源名（如 \"icon_\\\\(type)\"）无法静态检测",
+        "动态拼接的资源名（如 \"icon_\\(type)\"）无法静态检测",
         "运行时动态加载的资源无法检测"
       ]
     }

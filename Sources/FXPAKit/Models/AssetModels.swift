@@ -10,6 +10,7 @@ public struct AssetFile: Codable {
     public var source: String
     public var base_name: String
     public var sha256: String
+    public var children: [AssetFile]?
 }
 
 /// 按来源拆分的资源统计。

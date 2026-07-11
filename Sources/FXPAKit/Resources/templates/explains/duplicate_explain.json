@@ -3,37 +3,36 @@
   "steps": [
     {
       "type": "step",
-      "title": "Step 1：扫描文件",
-      "desc": "用 os.walk 递归遍历 .app 目录，筛选满足以下条件的文件：扩展名在资源类型列表中（.png/.jpg/.json/.plist/.ttf 等），文件大小 ≥ 1KB（跳过太小的文件），排除 .car/.dylib/.framework 等特殊文件。"
+      "title": "Step 1：扫描源码工程目录",
+      "desc": "通过 FileManager.enumerator 递归遍历源码工程目录（非 .app），筛选满足以下条件的文件：扩展名在 allowedExtensions 白名单内，不在 skipDirs 黑名单目录中（.git / DerivedData / build / Carthage / node_modules / .swiftpm / __pycache__ / .app / .xcarchive / .xcodeproj / .xcworkspace 等 12 个目录）。每个文件计算 SHA256 哈希值。无最小文件大小过滤——所有符合扩展名条件的文件都会参与检测。"
     },
     {
       "type": "step",
-      "title": "Step 2：计算哈希",
-      "desc": "对每个文件计算 SHA256 哈希值（64KB 分块读取，避免内存溢出）。icon_home.png → a1b2c3d4e5f6...。Assets/icon_home.png → a1b2c3d4e5f6...（相同内容，哈希相同）。"
+      "title": "Step 2：计算 SHA256 哈希",
+      "desc": "使用 CryptoKit.SHA256，以 8KB（8192 字节）分块通过 FileHandle 读取，避免大文件内存溢出。相同内容的文件产生相同哈希值。"
     },
     {
       "type": "step",
       "title": "Step 3：分组检测重复",
-      "desc": "哈希完全相同的文件归为一组，即内容完全一致的重复资源。"
+      "desc": "哈希完全相同的文件归为一组（count > 1），即内容完全一致的重复资源。按浪费体积降序排列。"
     },
     {
       "type": "step",
       "title": "Step 4：计算浪费",
-      "desc": "浪费体积 = 单文件大小 × (实例数 - 1)。"
+      "desc": "浪费体积 = 单文件大小 × (实例数 - 1)"
     },
     {
       "type": "code",
       "title": "示例",
-      "code": "扫描到 3 个文件，哈希都是 a1b2c3d4...：\n  - Frameworks/A.framework/icon_home.png (50KB)\n  - Frameworks/B.framework/icon_home.png (50KB)\n  - Resources/icon_home.png (50KB)\n\n→ 重复组：3 个实例\n→ 浪费：50KB × (3-1) = 100KB"
+      "code": "扫描到 3 个文件，哈希都是 a1b2c3d4...：\n  - Pods/A/Resources/icon_home.png (50KB)\n  - Pods/B/Resources/icon_home.png (50KB)\n  - Resources/icon_home.png (50KB)\n\n→ 重复组：3 个实例\n→ 浪费：50KB × (3-1) = 100KB"
     },
     {
       "type": "items",
       "title": "局限性",
       "items": [
-        "只能检测内容完全相同的文件（哈希相同）",
+        "只能检测内容完全相同的文件（SHA256 哈希相同）",
         "无法检测相似但不同的图片（如同一张图的不同压缩版本）",
-        "跳过了 .car 文件（需要专门的 assetutil 工具分析）",
-        "跳过了小于 1KB 的文件（避免误报）"
+        "扫描范围为源码工程的文件系统文件，不解析 .car 编译产物（.car 内重复需查看「Car拆解」Tab）"
       ]
     }
   ]

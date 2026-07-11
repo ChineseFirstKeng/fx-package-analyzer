@@ -2,23 +2,28 @@
   "steps": [
     {
       "type": "step",
-      "title": "Step 1",
-      "desc": "使用 Periphery 对项目进行全量 SourceKit 分析，识别未被引用的声明"
+      "title": "Step 1（Periphery 路径，优先）",
+      "desc": "检测 Periphery 是否已安装。若已安装，执行 periphery scan --format json --quiet（超时 600 秒），对项目进行全量 SourceKit 分析，识别未被引用的 Swift/ObjC 声明。"
+    },
+    {
+      "type": "step",
+      "title": "Step 1（回退路径，Periphery 未安装时）",
+      "desc": "若 Periphery 未安装，降级为 LinkMap 启发式分析：解析 LinkMap 文件，按模块聚合符号大小，基于 LinkMap 数据做基础的模块级统计（无精确的声明级别未使用检测）。"
     },
     {
       "type": "step",
       "title": "Step 2",
-      "desc": "解析 LinkMap 文件，建立符号名 → 编译产物大小的映射"
+      "desc": "解析 LinkMap 文件，建立符号名 → 编译产物大小的映射（仅计入 size > 0 的符号）。"
     },
     {
       "type": "step",
       "title": "Step 3",
-      "desc": "将 Periphery 报告的未使用声明与 LinkMap 符号进行匹配，估算每个未使用项的体积贡献"
+      "desc": "将 Periphery 报告的未使用声明与 LinkMap 符号进行模糊匹配（按 kind 和名称模式：实例/类/静态方法匹配 [ClassName methodName] 模式，类/结构体/枚举/协议匹配包含声明名的符号，变量/属性匹配路径末段名称）。估算每个未使用项的体积贡献。"
     },
     {
       "type": "step",
       "title": "Step 4",
-      "desc": "按模块分组，帮助定位哪些 Pod / Framework 有最多未使用代码"
+      "desc": "按模块分组，帮助定位哪些 Pod / Framework 有最多未使用代码。"
     },
     {
       "type": "items",
@@ -27,7 +32,8 @@
         "被 NSClassFromString / objc_getClass 等反射调用的类可能被误报",
         "被 @objc 标注且通过字符串引用的方法可能被误报",
         "Storyboard/XIB 中引用的类不会被代码扫描发现",
-        "预估大小为 0 表示未匹配到 LinkMap 符号（可能因 LTO 或动态库导致）"
+        "预估大小为 0 表示未匹配到 LinkMap 符号（可能因 LTO 或动态库导致）",
+        "若 Periphery 未安装，仅能做模块级统计，无精确声明级别的未使用检测"
       ]
     }
   ]

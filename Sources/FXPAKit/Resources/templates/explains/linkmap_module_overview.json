@@ -4,27 +4,27 @@
     {
       "type": "step",
       "title": "Step 1：解析 LinkMap 文件结构",
-      "desc": "LinkMap 是 Xcode 链接器生成的文本文件，包含三个主要段：\n- # Object files: — 参与链接的所有 .o 文件列表，格式：[  1] /path/to/ViewController.o\n- # Sections: — 段信息（__TEXT/__DATA 等）\n- # Symbols: — 符号表，格式：0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]"
+      "desc": "LinkMap 是 Xcode 链接器生成的文本文件，采用字节级单遍解析（避免大文件 Swift String 字素索引性能问题）。包含三个主要段：\n- # Object files:（也接受 # Objects:）— 参与链接的所有 .o 文件列表，格式：[  1] /path/to/ViewController.o\n- # Sections: — Mach-O 段信息（__TEXT/__DATA/__LINKEDIT 等）\n- # Symbols: — 符号表，格式：0x100004000 0x00000020 [  1] -[ViewController viewDidLoad]\n各段内的 # 开头的列标题行（如 # Address Size Segment Section）作为块内注释忽略，不终止当前段。"
     },
     {
       "type": "step",
       "title": "Step 2：建立 file_id 映射",
-      "desc": "解析 Object files 段，建立编号到路径的映射：\n[  1] /path/to/ViewController.o → {1: \"/path/to/ViewController.o\"}"
+      "desc": "解析 Object files 段，用 [] 括号提取编号到路径的映射：\n[  1] /path/to/ViewController.o → {1: \"/path/to/ViewController.o\"}"
     },
     {
       "type": "step",
       "title": "Step 3：解析符号并关联文件",
-      "desc": "解析 Symbols 段，每个符号包含：\n- 地址（Address）\n- 大小（Size，十六进制）\n- 文件编号（file_id）\n- 符号名（函数名/变量名）"
+      "desc": "解析 Symbols 段，每个符号包含：地址（Address，十六进制）、大小（Size，十六进制）、文件编号（file_id，[] 括号内）、符号名（剩余文本）。无 file_id 的符号归为 linker synthesized。"
     },
     {
       "type": "step",
       "title": "Step 4：按模块聚合",
-      "desc": "按文件路径中的模式推断模块归属：\n- /Pods/AFNetworking/ → 模块 AFNetworking\n- MyApp.build/Objects-normal/ → 模块 MyApp\n- .build/checkouts/Alamofire/ → 模块 Alamofire"
+      "desc": "按文件路径中的模式推断模块归属（guessModule）：\n- .a(文件名) → 静态库名\n- /Pods/<名称>/ → 模块 <名称>\n- .build/ 路径 → .build/ 前的目录名\n- .framework/ 或 .framework( 路径 → .framework 前的目录名\n- linker synthesized → 链接器合成\nlib_type 判定：全部来自 Xcode.app → toolchain；仅合成符号 → synthesized；系统路径 → system；仅 framework 引用无实际 .o → stub；其余 → static。"
     },
     {
       "type": "step",
       "title": "Step 5：累加体积",
-      "desc": "同一模块的所有符号 size 累加 = 该模块的代码体积"
+      "desc": "同一模块的所有符号 size 累加 = 该模块的代码体积。模块内按 .o 文件进一步细分，按体积降序排列。"
     },
     {
       "type": "code",
@@ -35,10 +35,11 @@
       "type": "items",
       "title": "局限性",
       "items": [
-        "LinkMap 只记录代码段（__TEXT），不包含资源文件大小",
+        "LinkMap 包含所有 Mach-O 段（__TEXT/__DATA/__LINKEDIT 等），但不含 .app 资源文件大小",
         "LTO（链接时优化）可能导致部分符号信息缺失",
         "动态库（.framework dynamic）的代码不计入主二进制的 LinkMap",
-        "不同编译配置（Debug/Release）生成的 LinkMap 大小不同"
+        "不同编译配置（Debug/Release）生成的 LinkMap 大小差异显著",
+        "解析 64MB+ 大文件时，采用宽松 UTF-8 解码首部 8KB 识别文件类型，避免非 UTF-8 符号名导致全量读取失败"
       ]
     }
   ]

@@ -3,18 +3,18 @@
   "steps": [
     {
       "type": "step",
-      "title": "Step 1：按路径推断来源模块",
-      "desc": "按 .app 内路径推断来源模块：\n- Frameworks/XXX.framework → 动态库\n- PlugIns/XXX.appex → Extension\n- 根目录 → 主工程"
+      "title": "Step 1：按源码路径推断来源模块",
+      "desc": "根据源码工程中的文件路径推断归属模块（ResourceScanner.guessSourceModule）：\n- Pods/<名称>/ → 对应 Pod 模块\n- 工程根目录的顶层子目录名 → 对应模块\n- 其余文件 → 归入主工程"
     },
     {
       "type": "step",
-      "title": "Step 2：区分代码和资源",
-      "desc": "每个模块内：\n- Mach-O 二进制（通过文件头魔数识别）→ 归为\"代码\"\n- 其余文件 → 归为\"资源\""
+      "title": "Step 2：按来源分别统计资源体积",
+      "desc": "本 Tab 的\"代码 & 资源拆分\"展示每个来源模块的资源文件总体积（code 字段当前固定为 0，所有扫描到的文件均归类为资源）。注：代码体积需参见「模块拆解」Tab（来自 LinkMap 分析）。"
     },
     {
       "type": "code",
       "title": "示例",
-      "code": "Frameworks/AFNetworking.framework/\n  AFNetworking (Mach-O) → 代码: 2MB\n  Info.plist → 资源: 1KB\n  Assets.car → 资源: 500KB\n\n结果：\n  AFNetworking: 代码 2MB, 资源 501KB, 合计 2.5MB"
+      "code": "源工程文件：\n  Pods/AFNetworking/Resources/icon.png → 来源: AFNetworking, 资源: 50KB\n  MyApp/Resources/config.json → 来源: 主工程, 资源: 10KB\n\n结果：\n  AFNetworking: 代码 0, 资源 50KB, 合计 50KB\n  主工程: 代码 0, 资源 10KB, 合计 10KB"
     }
   ]
 }

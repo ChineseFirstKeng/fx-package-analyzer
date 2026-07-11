@@ -4,12 +4,12 @@
     {
       "type": "step",
       "title": "Step 1：扫描源码工程资源文件",
-      "desc": "遍历工程目录，识别两类资源：\n1. .xcassets 内的 imageset / colorset / dataset — 以目录名为资源名，聚合内部所有原始文件\n2. Resources / Fonts / Sounds 等目录下的松散资源文件"
+      "desc": "通过 FileManager.enumerator 遍历整个工程目录（不限定特定子目录），识别两类资源：\n1. .xcassets 内的 imageset / colorset / dataset / appiconset / launchimage — 以目录名为资源名（去掉后缀），聚合内部所有原始文件\n2. 工程中任意位置符合 allowedExtensions 白名单的松散资源文件（跳过 Contents.json）"
     },
     {
       "type": "step",
       "title": "Step 2：按扩展名分类",
-      "desc": "将文件按扩展名映射到语义类别：.png/.jpg → images / .ttf/.otf → fonts / .json/.plist → data / .storyboard/.nib → nib_storyboard 等"
+      "desc": "将文件按扩展名通过 extToCategory 映射到语义类别：.png/.jpg → images / .ttf/.otf → fonts / .json/.plist → data / .storyboard/.nib → nib_storyboard / .strings → strings / .mp3/.wav → audio 等"
     },
     {
       "type": "step",

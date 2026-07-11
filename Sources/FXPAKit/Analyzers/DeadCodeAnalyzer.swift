@@ -30,7 +30,11 @@ public struct DeadCodeAnalyzer: Analyzer {
     }
     public var fallbackJSON: String { #"{"unused_items":[]}"# }
 
-    public init() {}
+    public let config: PackageCheckConfig
+
+    public init(config: PackageCheckConfig) {
+        self.config = config
+    }
 
     static let kindLabels: [String: String] = [
         "class": "类", "struct": "结构体", "enum": "枚举", "protocol": "协议",

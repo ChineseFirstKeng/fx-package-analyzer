@@ -31,7 +31,7 @@
       "title": "局限性",
       "items": [
         "只能检测 .car 文件内部的重复（Asset Catalog 编译产物）",
-        "无法检测 .app 目录下其他文件的重复（需要运行 duplicate_resource_detector.py）",
+        "无法检测 .app 目录下其他文件的重复（请使用「重复资源」Tab 检测文件系统级别的重复）",
         "同一资源的不同 scale 版本（@1x/@2x/@3x）不视为重复",
         "依赖 assetutil 工具（需要安装 Xcode）"
       ]

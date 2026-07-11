@@ -45,25 +45,15 @@ public struct PodResourcesAnalyzer: Analyzer {
     }
     public var fallbackJSON: String { #"{"pods":[]}"# }
 
-    public init() {}
+    private let config: PackageCheckConfig
 
-    static let extToCategory: [String: String] = [
-        ".png": "images", ".jpg": "images", ".jpeg": "images", ".gif": "images", ".webp": "images",
-        ".bmp": "images", ".tiff": "images", ".tif": "images", ".ico": "images", ".heic": "images",
-        ".heif": "images", ".svg": "images", ".pdf": "images",
-        ".ttf": "fonts", ".otf": "fonts", ".ttc": "fonts", ".woff": "fonts", ".woff2": "fonts",
-        ".xib": "nib_storyboard", ".nib": "nib_storyboard", ".storyboard": "nib_storyboard", ".storyboardc": "nib_storyboard",
-        ".mp3": "audio", ".wav": "audio", ".m4a": "audio", ".aac": "audio", ".caf": "audio",
-        ".mp4": "video", ".mov": "video", ".m4v": "video",
-        ".json": "data", ".plist": "data", ".xml": "data",
-        ".strings": "strings", ".stringsdict": "strings",
-        ".js": "scripts", ".css": "scripts", ".html": "scripts",
-        ".lproj": "localization", ".mlmodel": "mlmodel", ".mlmodelc": "mlmodel", ".car": "asset_catalog",
-    ]
+    public init(config: PackageCheckConfig = .loadDefault()) {
+        self.config = config
+    }
 
-    static func guessCategory(_ path: String) -> String {
+    private func guessCategory(_ path: String) -> String {
         let ext = "." + (path as NSString).pathExtension.lowercased()
-        if let c = extToCategory[ext] { return c }
+        if let c = config.extToCategory[ext] { return c }
         let base = (path as NSString).lastPathComponent
         if ext == ".bundle" || base.hasSuffix(".bundle") { return "bundle" }
         if (path as NSString).pathExtension.isEmpty { return "binary" }
@@ -167,7 +157,7 @@ public struct PodResourcesAnalyzer: Analyzer {
         for item in raw {
             let size = measureFile(item.rawPath, podsRoot: podsRoot, builtProducts: builtProducts)
             if size == 0 { notFound += 1; continue }
-            measured.append(MItem(pod: item.pod, target: item.target, path: item.rawPath, size: size, category: Self.guessCategory(item.rawPath)))
+            measured.append(MItem(pod: item.pod, target: item.target, path: item.rawPath, size: size, category: guessCategory(item.rawPath)))
         }
 
         // 按 pod 聚合
@@ -185,7 +175,7 @@ public struct PodResourcesAnalyzer: Analyzer {
         for name in podOrder.sorted(by: { (podData[$0]!.size) > (podData[$1]!.size) }) {
             let agg = podData[name]!
             let files = agg.order.sorted { agg.files[$0]! > agg.files[$1]! }.map {
-                PodResourceFile(path: $0, size: agg.files[$0]!, category: Self.guessCategory($0))
+                PodResourceFile(path: $0, size: agg.files[$0]!, category: guessCategory($0))
             }
             var byCat: [String: Int] = [:]
             for f in files { byCat[f.category, default: 0] += f.size }

@@ -4,22 +4,22 @@
     {
       "type": "step",
       "title": "Step 1：识别 Mach-O 二进制",
-      "desc": "读取文件头 4 字节魔数识别 .app 内所有 Mach-O 二进制文件：\n- 0xFEEDFACE → 32 位 Mach-O\n- 0xFEEDFACF → 64 位 Mach-O\n- 0xCAFEBABE → Fat Binary（通用二进制）"
+      "desc": "App Structure 分析器在遍历 .app 包时，对无扩展名的文件读取文件头 4 字节魔数判定是否为 Mach-O 可执行文件。支持的魔数：32-bit LE (0xFEEDFACE) / 64-bit LE (0xFEEDFACF) / 32-bit BE (0xCEFAEDFE) / 64-bit BE (0xCFFAEDFE) / Universal LE (0xCAFEBABE) / Universal BE (0xBEBAFECA)。"
     },
     {
       "type": "step",
-      "title": "Step 2：提取动态库依赖",
-      "desc": "对每个二进制执行 otool -L，提取 LC_LOAD_DYLIB 加载指令中的动态库依赖路径。"
+      "title": "Step 2：获取文件大小",
+      "desc": "通过 FileManager.attributesOfItem[.size] 获取 Mach-O 二进制文件的磁盘占用大小。"
     },
     {
       "type": "step",
-      "title": "Step 3：获取文件大小",
-      "desc": "用 os.path.getsize() 获取文件大小。"
+      "title": "Step 3：在 App 概览中展示",
+      "desc": "在「概览」页的 .app 目录树中，Mach-O 二进制文件类型标记为 \"macho\"，与资源文件区分显示。可执行文件总体积在 KPI 卡片中单独展示。注：动态库依赖链分析（otool -L）在当前版本中未启用。"
     },
     {
       "type": "code",
       "title": "示例",
-      "code": ".app 目录：\n  MyApp (Mach-O 64-bit)\n  Frameworks/AFNetworking.framework/AFNetworking (Mach-O 64-bit)\n\notool -L MyApp 输出：\n  /usr/lib/libobjc.A.dylib (系统库)\n  /System/Library/Frameworks/Foundation.framework/Foundation (系统库)\n  @rpath/AFNetworking.framework/AFNetworking (嵌入库)\n\n结果：\n  MyApp: 大小 20MB, 嵌入库依赖 1 个\n  AFNetworking: 大小 2MB, 嵌入库依赖 0 个"
+      "code": ".app 目录：\n  MyApp (Mach-O 64-bit, 20MB)\n  Frameworks/\n    AFNetworking.framework/\n      AFNetworking (Mach-O 64-bit, 2MB)\n      Info.plist (1KB)\n  Assets.car (5MB)\n\n概览：\n  所有可执行文件: 22MB\n  资源: 5MB + 1KB\n  总大小: 27MB"
     }
   ]
 }

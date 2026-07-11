@@ -4,27 +4,32 @@
     {
       "type": "step",
       "title": "Step 1：获取 App Thinning Size Report",
-      "desc": "有两种方式获取：\n- 解析 .xcarchive 中的 App Thinning Size Report.txt 文件（由 Xcode exportArchive 生成）\n- 调用 xcrun app-thinning-size-tool --xml 直接获取"
+      "desc": "解析 .xcarchive 中的 App Thinning Size Report.txt 文件（由 xcodebuild -exportArchive 生成，在 Builder.build() 阶段自动执行）。仅当输入为 .xcarchive 或执行了编译时可用。"
     },
     {
       "type": "step",
       "title": "Step 2：解析设备变体",
-      "desc": "每个变体对应一种设备型号/架构组合：\n- iPhone 14 (arm64)\n- iPad Pro (arm64)\n- Apple Watch (arm64_32)"
+      "desc": "每个变体对应一种设备型号/架构组合，从 Report.txt 中解析各 Variant 的设备名称和对应的 App/ODR/Assets/Code 大小（支持 B/KB/MB/GB 单位）。"
     },
     {
       "type": "step",
       "title": "Step 3：提取大小信息",
-      "desc": "每个变体包含：\n- App：主应用大小\n- ODR：On-Demand Resources 大小\n- 下载大小：用户实际下载的大小（压缩后）\n- 安装大小：安装后占用的空间"
+      "desc": "每个变体包含：App（主应用大小）、ODR（On-Demand Resources 大小）、下载大小（压缩后用户实际下载量）、安装大小（解压后占用空间）。同时累加变体元数据：通用包大小、各变体的压缩/未压缩均值。"
     },
     {
       "type": "step",
-      "title": "Step 4：计算节省",
-      "desc": "节省 = 通用包大小 - 该变体的下载大小"
+      "title": "Step 4：Asset Thinning 补充分析（.app 输入时）",
+      "desc": "当仅有 .app 而无 .xcarchive 时，降级为使用 xcrun assetutil --info 解析 .app 内的 .car 文件（超时 30 秒），提取各资源的 Name/AssetType/Scale/Idiom 信息，辅助判断 App Thinning 情况。"
+    },
+    {
+      "type": "step",
+      "title": "Step 5：计算节省",
+      "desc": "节省量 = 通用包大小 - 各变体的平均下载大小；节省百分比 = 节省量 / 通用包大小。"
     },
     {
       "type": "code",
       "title": "示例",
-      "code": "App Thinning Size Report 内容：\n  Device: iPhone 14\n    App: 50MB\n    ODR: 0MB\n    Download: 48MB\n    Install: 55MB\n\n  Device: iPad Pro\n    App: 55MB\n    ODR: 0MB\n    Download: 52MB\n    Install: 60MB\n\n通用包大小: 80MB\n节省: 80MB - 48MB = 32MB (iPhone 14)"
+      "code": "App Thinning Size Report 内容：\n  Variant: iPhone 14\n    App: 50MB, ODR: 0MB\n    Uncompressed: 80MB, Compressed: 48MB\n\n  Variant: iPad Pro\n    App: 55MB, ODR: 0MB\n    Uncompressed: 85MB, Compressed: 52MB\n\n通用包大小: 120MB\n节省: 120MB - 50MB = 70MB (平均)"
     }
   ]
 }

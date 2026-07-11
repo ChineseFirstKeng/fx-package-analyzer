@@ -3,18 +3,18 @@
   "steps": [
     {
       "type": "step",
-      "title": "Step 1：遍历 .app 目录",
-      "desc": "与「资源类别分布」同源，遍历 .app 目录下所有文件。"
+      "title": "Step 1：遍历源码工程目录",
+      "desc": "与「资源类别分布」同源，通过 ResourceScanner 遍历整个源码工程目录下所有符合 allowedExtensions 白名单的文件。"
     },
     {
       "type": "step",
       "title": "Step 2：按扩展名分组",
-      "desc": "按文件扩展名（.png/.car/.framework 等）分组统计体积。\n无扩展名的文件（通常是 Mach-O 二进制）单独归为一组。"
+      "desc": "按文件扩展名（.png/.json/.ttf 等）分组统计体积和数量。\n无扩展名的文件单独归为一组（标记为 \"(no ext)\"）。"
     },
     {
       "type": "code",
       "title": "示例",
-      "code": ".app 目录：\n  icon_home.png (50KB)\n  icon_back.png (30KB)\n  Assets.car (5MB)\n  MyApp (20MB)\n\n按扩展名分组：\n  .png: 80KB (2个)\n  .car: 5MB (1个)\n  无扩展名: 20MB (1个)"
+      "code": "源工程文件：\n  icon_home.png (50KB)\n  icon_back.png (30KB)\n  config.json (2KB)\n\n按扩展名分组：\n  .png: 80KB (2个)\n  .json: 2KB (1个)"
     }
   ]
 }

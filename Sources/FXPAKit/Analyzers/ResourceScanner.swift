@@ -6,8 +6,10 @@ public struct ResourceScanner {
     public let config: PackageCheckConfig
     private let extToCategory: [String: String]
     private let allowed: Set<String>
+    private let skipDirs: Set<String>
 
-    static let skipDirs: Set<String> = [
+    /// 资源扫描默认跳过目录（向后兼容：config 中无此配置时使用的硬编码列表）。
+    static let defaultSkipDirs: Set<String> = [
         ".git", "DerivedData", "build", "Carthage", "node_modules",
         ".swiftpm", "__pycache__", ".claude", ".app", ".xcarchive",
         ".xcodeproj", ".xcworkspace",
@@ -17,6 +19,7 @@ public struct ResourceScanner {
         self.config = config
         self.extToCategory = config.extToCategory
         self.allowed = config.allowedExtensions
+        self.skipDirs = config.resourceSkipDirs.isEmpty ? Self.defaultSkipDirs : config.resourceSkipDirs
     }
 
     // MARK: 扫描结果
@@ -113,52 +116,75 @@ public struct ResourceScanner {
 
     // MARK: 扫描
 
-    /// 解析 .xcassets（对齐 scan_xcassets）。
-    func scanXcassets(_ baseDir: String, srcOverride: String? = nil) -> [AssetFile] {
+    /// 解析目录型 bundle（由 package_assets 类型配置，如 .imageset / .mlpackage / .scnassets 等）。
+    /// 每个匹配到的目录作为一个资源条目，内部文件存入 children 供前端展开。
+    func scanPackageAssets(_ baseDir: String, srcOverride: String? = nil) -> [AssetFile] {
+        let suffixes = config.packageSuffixes
+        guard !suffixes.isEmpty else { return [] }
         var files: [AssetFile] = []
-        walk(baseDir) { root in
-            guard root.hasSuffix(".xcassets") else { return }
-            let subs = (try? FileManager.default.contentsOfDirectory(atPath: root))?.sorted() ?? []
-            for sub in subs {
-                let subPath = root + "/" + sub
-                guard Self.isDir(subPath) else { continue }
-                let nameNoExt = Self.resub(sub, #"\.(imageset|colorset|dataset|appiconset|launchimage)$"#, caseInsensitive: true)
-                if nameNoExt == sub { continue }
-                let rel = Self.relativePath(subPath, from: baseDir)
-                // 遍历 imageset 内所有文件（跳过隐藏目录）
-                walk(subPath, skipHidden: true) { sr in
-                    let fnames = (try? FileManager.default.contentsOfDirectory(atPath: sr)) ?? []
-                    for fname in fnames {
-                        let fpath = sr + "/" + fname
-                        guard !Self.isDir(fpath) else { continue }
-                        if fname == "Contents.json" { continue }
-                        let e = ("." + (fname as NSString).pathExtension).lowercased()
-                        let ext = (fname as NSString).pathExtension.isEmpty ? "" : e
-                        if !allowed.contains(ext) { continue }
-                        let fsize = Self.fileSize(fpath)
-                        let source = srcOverride ?? guessSourceModule(subPath, baseDir)
-                        files.append(AssetFile(
-                            path: (rel as NSString).appendingPathComponent(fname),
-                            relative_path: rel,
-                            size: fsize,
-                            ext: ext,
-                            category: guessCategory(ext),
-                            source: source,
-                            base_name: nameNoExt,
-                            sha256: Hashing.sha256(ofFile: fpath)
-                        ))
-                    }
-                }
+
+        walk(baseDir, skipSuffixes: suffixes) { root in
+            let matchedSuffix = suffixes.first(where: { root.hasSuffix($0) })
+            guard let matchedSuffix = matchedSuffix else { return }
+
+            let dirName = (root as NSString).lastPathComponent
+            let baseName = (dirName as NSString).deletingPathExtension
+            let source = srcOverride ?? guessSourceModule(root, baseDir)
+            let rel = Self.relativePath(root, from: baseDir)
+            let children = collectFiles(in: root, baseDir: baseDir, source: source)
+            let totalSize = children.reduce(0) { $0 + $1.size }
+            files.append(AssetFile(
+                path: rel,
+                relative_path: rel,
+                size: totalSize,
+                ext: matchedSuffix,
+                category: guessCategory(matchedSuffix),
+                source: source,
+                base_name: baseName,
+                sha256: Hashing.sha256(ofDirectory: root),
+                children: children.isEmpty ? nil : children
+            ))
+        }
+        return files
+    }
+
+    /// 递归收集目录内所有文件为 AssetFile 条目
+    private func collectFiles(in dir: String, baseDir: String, source: String) -> [AssetFile] {
+        guard Self.isDir(dir) else { return [] }
+        var files: [AssetFile] = []
+        let entries = (try? FileManager.default.contentsOfDirectory(atPath: dir)) ?? []
+        for entry in entries {
+            let full = dir + "/" + entry
+            if Self.isSymlink(full) { continue }
+            if Self.isDir(full) {
+                files.append(contentsOf: collectFiles(in: full, baseDir: baseDir, source: source))
+            } else {
+                let e = ("." + (entry as NSString).pathExtension).lowercased()
+                let ext = (entry as NSString).pathExtension.isEmpty ? "" : e
+                let fsize = Self.fileSize(full)
+                let rel = Self.relativePath(full, from: baseDir)
+                files.append(AssetFile(
+                    path: rel,
+                    relative_path: rel,
+                    size: fsize,
+                    ext: ext,
+                    category: guessCategory(ext),
+                    source: source,
+                    base_name: Self.normalizeBaseName(entry),
+                    sha256: Hashing.sha256(ofFile: full)
+                ))
             }
         }
         return files
     }
 
-    /// 扫描 xcassets 外的松散资源（对齐 scan_loose_resources）。
+    /// 扫描普通松散资源（排除目录型 bundle 和 .xcassets 内文件，后者由 scanPackageAssets 处理）。
     func scanLooseResources(_ baseDir: String, srcOverride: String? = nil) -> [AssetFile] {
+        let suffixes = config.packageSuffixes
         var files: [AssetFile] = []
-        walk(baseDir) { root in
-            if root.contains(".xcassets") { return }
+        walk(baseDir, skipSuffixes: suffixes) { root in
+            // 跳过目录型 bundle 自身（其内部文件由 scanPackageAssets 处理）
+            if !suffixes.isEmpty && suffixes.contains(where: { root.hasSuffix($0) }) { return }
             let fnames = (try? FileManager.default.contentsOfDirectory(atPath: root)) ?? []
             for fname in fnames {
                 // 跳过 .package-check.json（工具自身配置，不上报为资源）
@@ -196,10 +222,10 @@ public struct ResourceScanner {
                 allFiles.append(f)
             }
         }
-        add(scanXcassets(projectDir))
+        add(scanPackageAssets(projectDir))
         add(scanLooseResources(projectDir))
         for (podName, srcDir) in findLocalPodDirs(projectDir) {
-            add(scanXcassets(srcDir, srcOverride: podName))
+            add(scanPackageAssets(srcDir, srcOverride: podName))
             add(scanLooseResources(srcDir, srcOverride: podName))
         }
 
@@ -225,7 +251,8 @@ public struct ResourceScanner {
 
     /// 自顶向下遍历目录，对每个目录调用 visit(root)。剪枝规则对齐 os.walk 中的 dirs[:] 过滤。
     /// 不跟随符号链接（对齐 Python os.walk followlinks=False）。
-    private func walk(_ base: String, skipHidden: Bool = false, visit: (String) -> Void) {
+    /// - skipSuffixes: 目录名以这些后缀结尾则跳过不进入（如 .xcassets/.mlpackage 等目录型 bundle）。
+    private func walk(_ base: String, skipHidden: Bool = false, skipSuffixes: Set<String> = [], visit: (String) -> Void) {
         guard Self.isDir(base) else { return }
         visit(base)
         let entries = (try? FileManager.default.contentsOfDirectory(atPath: base))?.sorted() ?? []
@@ -234,13 +261,18 @@ public struct ResourceScanner {
             // 跳过符号链接（对齐 Python os.walk followlinks=False）
             if Self.isSymlink(full) { continue }
             guard Self.isDir(full) else { continue }
+            // 跳过目录型 bundle（如 .xcassets / .mlpackage / .bundle / .scnassets）
+            if !skipSuffixes.isEmpty && skipSuffixes.contains(where: { entry.hasSuffix($0) }) {
+                visit(full)
+                continue
+            }
             // 剪枝：SKIP_DIRS + 隐藏目录
             if skipHidden {
                 if entry.hasPrefix(".") { continue }
             } else {
-                if Self.skipDirs.contains(entry) || entry.hasPrefix(".") { continue }
+                if self.skipDirs.contains(entry) || entry.hasPrefix(".") { continue }
             }
-            walk(full, skipHidden: skipHidden, visit: visit)
+            walk(full, skipHidden: skipHidden, skipSuffixes: skipSuffixes, visit: visit)
         }
     }
 

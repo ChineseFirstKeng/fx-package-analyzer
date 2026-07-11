@@ -1,38 +1,9 @@
 {
-  "title": "实现原理",
+  "title": "⚠️ 此分析模块暂未启用",
   "steps": [
     {
       "type": "text",
-      "desc": "基于 otool -L 提取的依赖关系自动检测三类问题："
-    },
-    {
-      "type": "step",
-      "title": "问题类型 1：unused（未使用的嵌入库）",
-      "desc": "某嵌入的动态库未被任何二进制引用，可能是多余的。\n检测方法：遍历所有二进制的依赖列表，如果某个嵌入库不在任何依赖列表中 → 标记为 unused。"
-    },
-    {
-      "type": "step",
-      "title": "问题类型 2：missing_dep（缺失的依赖）",
-      "desc": "某二进制依赖的库在 .app 中找不到。\n检测方法：遍历所有二进制的依赖列表，如果依赖的库不是系统库且不在 .app 中 → 标记为 missing_dep。"
-    },
-    {
-      "type": "step",
-      "title": "问题类型 3：deep_chain（依赖链过深）",
-      "desc": "嵌入库依赖链深度超过 5 层，可能存在过度间接依赖。\n检测方法：递归遍历依赖链，计算深度。"
-    },
-    {
-      "type": "items",
-      "title": "依赖分类",
-      "items": [
-        "以 /System/Library/、/usr/lib/ 开头 → 系统库",
-        "匹配 .app 内已发现的库 → 嵌入库",
-        "其余 → 未知"
-      ]
-    },
-    {
-      "type": "code",
-      "title": "示例",
-      "code": ".app 内有：\n  MyApp → 依赖 AFNetworking\n  AFNetworking → 无嵌入库依赖\n  SDWebImage → 无任何二进制依赖它\n\n检测结果：\n  unused: SDWebImage (未被任何二进制引用)\n  missing_dep: 无\n  deep_chain: 无"
+      "desc": "动态库依赖链分析（macho_dependency）在当前 Swift 版本中暂未实现。原 Python 版本中的 otool -L 依赖分析（unused 嵌入库检测、missing_dep 缺失依赖检测、deep_chain 依赖链过深检测）已从 Swift 迁移范围中移除。如需使用此功能，请使用原 Python 版本。"
     }
   ]
 }

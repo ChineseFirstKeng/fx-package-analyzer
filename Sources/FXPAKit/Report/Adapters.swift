@@ -41,7 +41,6 @@ public enum Adapters {
         let byCat = data["by_category"]?.objectPairs ?? []
         let allFiles = data["all_files"]?.arrayValue ?? []
         let allImages = data["all_images"]?.arrayValue ?? []
-        let bySource = data["by_source"]?.arrayValue ?? []
         let totalSize = data["total_size"]?.intValue ?? 0
         let fileCount = meta["file_count"]?.intValue ?? 0
 
@@ -102,9 +101,25 @@ public enum Adapters {
                     } else if !base.isEmpty && !activeLaunchimage.isEmpty && name.contains(".launchimage") {
                         name += (base == activeLaunchimage) ? "（当前启动图）" : "（未使用）"
                     }
-                    fileChildren.append(.object([
-                        ("name", .string(name)), ("type", .string(ext)), ("size", .int(sizeOf(f))),
-                    ]))
+                    // 目录型 bundle：展示为可展开的文件夹
+                    if let subFiles = f["children"]?.arrayValue, !subFiles.isEmpty {
+                        var subNodes: [JSONValue] = []
+                        for sf in subFiles.sorted(by: { ($0["size"]?.intValue ?? 0) > ($1["size"]?.intValue ?? 0) }) {
+                            let sfName = sf["path"]?.stringValue ?? ""
+                            let sfExt = sf["ext"]?.stringValue ?? ""
+                            subNodes.append(.object([
+                                ("name", .string(sfName)), ("type", .string(sfExt)), ("size", .int(sf["size"]?.intValue ?? 0)),
+                            ]))
+                        }
+                        fileChildren.append(.object([
+                            ("name", .string(name)), ("type", .string("dir")),
+                            ("size", .int(sizeOf(f))), ("children", .array(subNodes)),
+                        ]))
+                    } else {
+                        fileChildren.append(.object([
+                            ("name", .string(name)), ("type", .string(ext)), ("size", .int(sizeOf(f))),
+                        ]))
+                    }
                 }
                 extChildren.append(.object([
                     ("name", .string("\(ext) (\(files.count) 个)")), ("type", .string("dir")),
@@ -117,27 +132,6 @@ public enum Adapters {
                 ("size", .int(catTotal)), ("children", .array(extChildren)),
             ]))
         }
-
-        // 代码 & 资源拆分表
-        var srcRows: [JSONValue] = []
-        for s in bySource.prefix(100) {
-            let total = s["total"]?.intValue ?? 0
-            let pct = Double(total) / Double(max(totalSize, 1)) * 100
-            var name = s["name"]?.stringValue ?? ""
-            if name == "主工程" { name = ReportConstants.mainAppLabel }
-            srcRows.append(Ctx.row([
-                Ctx.cell(name, "lbl"),
-                Ctx.cell(fmt(s["code"]?.intValue ?? 0), "sz"),
-                Ctx.cell(fmt(s["resource"]?.intValue ?? 0), "sz"),
-                Ctx.cell("<b>\(fmt(total))</b>", "sz"),
-                Ctx.cell(String(format: "%.1f%%", pct), "num"),
-            ], sortKey: total))
-        }
-        let srcCols: [JSONValue] = [
-            Ctx.col("来源", true, "str"), Ctx.col("代码 (Mach-O)", true, "num", "right"),
-            Ctx.col("资源", true, "num", "right"), Ctx.col("合计", true, "num", "right"),
-            Ctx.col("占比", true, "num", "right"),
-        ]
 
         // ─ 未使用资源 section ─
         var unusedSection: JSONValue? = nil
@@ -158,6 +152,22 @@ public enum Adapters {
                     let p = u["path"]?.stringValue ?? u["name"]?.stringValue ?? ""
                     let fname = (p as NSString).lastPathComponent
                     let ext = (fname as NSString).pathExtension
+                    // 目录型 bundle：可展开
+                    if let subFiles = u["children"]?.arrayValue, !subFiles.isEmpty {
+                        var subNodes: [JSONValue] = []
+                        for sf in subFiles.sorted(by: { ($0["size"]?.intValue ?? 0) > ($1["size"]?.intValue ?? 0) }) {
+                            let sfp = sf["path"]?.stringValue ?? ""
+                            let sfn = (sfp as NSString).lastPathComponent
+                            let sfe = (sfn as NSString).pathExtension
+                            subNodes.append(.object([("name", .string(sfn)),
+                                                     ("type", .string(sfe.isEmpty ? "file" : "." + sfe)),
+                                                     ("size", .int(sf["size"]?.intValue ?? 0))]))
+                        }
+                        return .object([("name", .string(fname)),
+                                        ("type", .string("dir")),
+                                        ("size", .int(u["size"]?.intValue ?? 0)),
+                                        ("children", .array(subNodes))])
+                    }
                     return .object([("name", .string(fname)),
                                     ("type", .string(ext.isEmpty ? "file" : "." + ext)),
                                     ("size", .int(u["size"]?.intValue ?? 0))])
@@ -235,9 +245,25 @@ public enum Adapters {
                     for fItem in files {
                         let p = fItem["path"]?.stringValue ?? ""
                         let ext = "." + (p as NSString).pathExtension
-                        fChildren.append(.object([
-                            ("name", .string(p)), ("type", .string(ext)), ("size", .int(fItem["size"]?.intValue ?? 0)),
-                        ]))
+                        // 目录型 bundle：可展开
+                        if let subFiles = fItem["children"]?.arrayValue, !subFiles.isEmpty {
+                            var subNodes: [JSONValue] = []
+                            for sf in subFiles.sorted(by: { ($0["size"]?.intValue ?? 0) > ($1["size"]?.intValue ?? 0) }) {
+                                let sfp = sf["path"]?.stringValue ?? ""
+                                let sfe = "." + (sfp as NSString).pathExtension
+                                subNodes.append(.object([
+                                    ("name", .string(sfp)), ("type", .string(sfe)), ("size", .int(sf["size"]?.intValue ?? 0)),
+                                ]))
+                            }
+                            fChildren.append(.object([
+                                ("name", .string(p)), ("type", .string("dir")),
+                                ("size", .int(fItem["size"]?.intValue ?? 0)), ("children", .array(subNodes)),
+                            ]))
+                        } else {
+                            fChildren.append(.object([
+                                ("name", .string(p)), ("type", .string(ext)), ("size", .int(fItem["size"]?.intValue ?? 0)),
+                            ]))
+                        }
                     }
                     dTrees.append(.object([
                         ("name", .string("重复组 SHA256:\(h)")),
@@ -266,11 +292,6 @@ public enum Adapters {
                             ("filter", .object([("search", .object([("id", .string("catTreeSearch")), ("placeholder", .string("搜索文件名..."))]))])),
                         ])),
         ]
-        if !bySource.isEmpty {
-            sections.append(Ctx.section("代码 & 资源拆分", hint: "共 \(bySource.count) 项",
-                explain: Explains.renderBlock(explains["explain_code_resource"]),
-                table: .object([("id", .string("srcTable")), ("columns", .array(srcCols)), ("rows", .array(srcRows))])))
-        }
         if let unusedSection { sections.append(unusedSection) }
         if let dupSection { sections.append(dupSection) }
 

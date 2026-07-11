@@ -7,9 +7,14 @@ public struct ObjCUnusedAnalyzer: Analyzer {
     public var displayName: String { "objc_unused_analyzer" }
     public var fallbackJSON: String { #"{"unused_classes":[],"unused_methods":[],"dynamic_calls":[]}"# }
 
-    public init() {}
+    public let config: PackageCheckConfig
 
-    static let skipDirs: Set<String> = [".git", "DerivedData", "build", ".build", "node_modules", "__pycache__", "Target Support Files", "Pods", ".svn", ".hg"]
+    public init(config: PackageCheckConfig) {
+        self.config = config
+    }
+
+    /// ObjC 未使用代码默认跳过目录（向后兼容：config 中无此配置时使用）。
+    static let defaultSkipDirs: Set<String> = [".git", "DerivedData", "build", ".build", "node_modules", "__pycache__", "Target Support Files", "Pods", ".svn", ".hg"]
 
     static let baseTypes: Set<String> = [
         "id", "Class", "SEL", "BOOL", "void", "int", "float", "double", "char", "long", "short",
@@ -63,7 +68,8 @@ public struct ObjCUnusedAnalyzer: Analyzer {
 
         // xib/storyboard/plist 静态扫描
         Logger.info("扫描 xib/storyboard/plist 中的静态引用 ...")
-        let scanner = ObjCReferenceScanner(scanDir: scanDir)
+        let skipDirs = config.unusedCodeSkipDirs.isEmpty ? Self.defaultSkipDirs : config.unusedCodeSkipDirs
+        let scanner = ObjCReferenceScanner(scanDir: scanDir, skipDirs: skipDirs)
         scanner.scan()
         Logger.info("静态扫描完成: \(scanner.foundClasses.count) 个类, \(scanner.foundSelectors.count) 个 selector (\(String(format: "%.1f", 0))s)")
 

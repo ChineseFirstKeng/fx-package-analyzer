@@ -160,7 +160,7 @@ public struct Orchestrator {
             disabledMsg: "文件结构分析")
 
         // 3. Pod 资源归因
-        run(PodResourcesAnalyzer(), enabled: t.podResources, ready: ctx.projectDir != nil, ctx: ctx,
+        run(PodResourcesAnalyzer(config: ctx.config), enabled: t.podResources, ready: ctx.projectDir != nil, ctx: ctx,
             disabledMsg: "Pod 资源归因")
         // 6. 动态库依赖链（已删除，不跑）
         // 8. 编译配置审计
@@ -173,7 +173,7 @@ public struct Orchestrator {
         run(LocalizationAnalyzer(), enabled: t.localization, ready: ctx.appPath != nil, ctx: ctx,
             disabledMsg: "本地化语言审计")
         // 10. 无用代码检测
-        run(DeadCodeAnalyzer(), enabled: t.deadCode, ready: ctx.projectDir != nil, ctx: ctx,
+        run(DeadCodeAnalyzer(config: ctx.config), enabled: t.deadCode, ready: ctx.projectDir != nil, ctx: ctx,
             disabledMsg: "无用代码检测")
 
         // 4. Assets.car 拆解
@@ -183,7 +183,7 @@ public struct Orchestrator {
         run(AppThinningAnalyzer(), enabled: t.thinning, ready: (ctx.xcarchivePath != nil || ctx.appPath != nil), ctx: ctx,
             disabledMsg: "App Thinning")
         // 11. ObjC 未使用代码检测
-        run(ObjCUnusedAnalyzer(), enabled: t.objcUnused, ready: ctx.astDir != nil, ctx: ctx,
+        run(ObjCUnusedAnalyzer(config: ctx.config), enabled: t.objcUnused, ready: ctx.astDir != nil, ctx: ctx,
             disabledMsg: "ObjC 未使用代码检测")
 
         Logger.success("分析完成")
