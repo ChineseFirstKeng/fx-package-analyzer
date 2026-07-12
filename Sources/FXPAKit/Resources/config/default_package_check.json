@@ -7,6 +7,7 @@
     {"type": "audio",           "suffixes": [".mp3",".wav",".m4a",".aac",".caf"]},
     {"type": "video",           "suffixes": [".mp4",".mov",".m4v"]},
     {"type": "data",            "suffixes": [".json",".xml",".bin"]},
+    {"type": "compressed",      "suffixes": [".zip",".gz",".tar",".bz2",".xz",".7z",".rar",".tgz",".lz4"]},
     {"type": "strings",         "suffixes": [".strings",".stringsdict"]},
     {"type": "scripts",         "suffixes": [".js",".css",".html"]},
     {"type": "mlmodel",         "suffixes": [".mlmodel",".mlmodelc"]},
