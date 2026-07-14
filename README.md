@@ -1,24 +1,27 @@
 # fxpa -- iOS 包体积分析工具
 
-`fxpa` 是一个用 Swift 编写的 iOS 包体积分析命令行工具，由原 Python/Shell 版本迁移而来。
-一次 `xcodebuild archive` 编译，即可完成代码归因、资源分析、工程配置审计等全面检测，最终输出 JSON 数据与交互式 HTML 报告。
+> ⚠️ **测试工程**：本项目处于实验验证阶段，尚未达到生产可用标准，仅供交流参考。
+
+`fxpa` 是 iOS 包体积分析命令行工具。一次 `xcodebuild archive` 编译，即可完成代码归因、资源分析、工程配置审计等全面检测，最终输出 JSON 数据与交互式 HTML 报告。
 
 ## 安装
 
-```bash
-brew install ChineseFirstKeng/fx-package-analyzer/fxpa
-```
-
-也可从源码构建：
+从源码构建：
 
 ```bash
 swift build -c release
 # 二进制位于 .build/release/fxpa
 ```
 
+安装到本地：
+
+```bash
+ln -sf "$(pwd)/.build/release/fxpa" /usr/local/bin/fxpa
+```
+
 ## 系统要求
 
-- macOS 13+
+- macOS 12+
 - Xcode 15+（libclang 随 Xcode 内置，无需额外安装）
 
 ## 用法
@@ -54,7 +57,7 @@ open <输出目录>/unified_report.html
 | 模块 | 说明 | 默认 |
 |---|---|---|
 | linkmap | LinkMap 代码段归因，按 Pod/模块拆分 | 开 |
-| assets | `.app` 资源文件分析 | 开 |
+| assets | 源码工程资源文件分析 | 开 |
 | pod_resources | Pod 资源归属分析 | 开 |
 | duplicates | 重复资源检测 | 开 |
 | unused_resources | 无用资源检测 | 开 |
@@ -65,6 +68,28 @@ open <输出目录>/unified_report.html
 | assets_car | Assets.car 拆解（需 assetutil） | 关 |
 | app_thinning | App Thinning 检测（需编译） | 关 |
 | objc_unused | ObjC 未使用代码检测（需 libclang 编译） | 关 |
+
+## 报告预览
+
+### 概览
+
+<img src="https://raw.githubusercontent.com/ChineseFirstKeng/files/main/package-check-gl.png" width="800" alt="概览">
+
+### 模块拆解
+
+<img src="https://raw.githubusercontent.com/ChineseFirstKeng/files/main/package-check-mk.png" width="800" alt="模块拆解">
+
+### 资源明细
+
+<img src="https://raw.githubusercontent.com/ChineseFirstKeng/files/main/package-check-zy.png" width="800" alt="资源明细">
+
+### 编译配置审计
+
+<img src="https://raw.githubusercontent.com/ChineseFirstKeng/files/main/package-check-by.png" width="800" alt="编译配置审计">
+
+### ObjC 未使用代码
+
+<img src="https://raw.githubusercontent.com/ChineseFirstKeng/files/main/package-check-objcunsed.png" width="800" alt="ObjC 未使用代码">
 
 ## 输出
 
@@ -80,8 +105,8 @@ Sources/
 ├── fxpa/                 可执行入口
 └── FXPAKit/
     ├── CLI/              命令行（check 子命令 + init）
-    ├── Config/           .package-check.json 与模块开关
-    ├── Core/             Logger / Shell / 格式化 / Mach-O / JSON
+    ├── Config/           .package-check.json 配置读取与模块开关
+    ├── Core/             Logger / Shell / 格式化 / Mach-O / JSON / libclang 绑定
     ├── Pipeline/         输入解析 / xcodebuild 编译 / Pod 映射 / 编排器
     ├── Models/           各分析器输出的 Codable 模型
     ├── Analyzers/        分析器协议与各模块实现
@@ -89,4 +114,4 @@ Sources/
     └── Resources/        HTML/CSS/JS 模板与说明文件
 ```
 
-分析器彼此解耦，仅通过编排器写出的 JSON 交换数据；报告层复用原始前端模板，在 Swift 端复刻数据结构。
+分析器彼此解耦，仅通过编排器写出的 JSON 交换数据。
